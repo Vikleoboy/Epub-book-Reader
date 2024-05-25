@@ -201,7 +201,7 @@ Router.get("/home", async (req, res) => {
 
 Router.get("/addFolder/", async (req, res) => {
   const { path } = req.query;
-  res.send(path);
+  // res.send(path);
 
   console.log(path);
 
@@ -210,60 +210,116 @@ Router.get("/addFolder/", async (req, res) => {
   let pth = "C:\\Users\\Vikleo\\Documents\\books";
   let des = "C:\\Users\\Vikleo\\Desktop\\books";
   let files = await fs.readdirSync(pth);
+  // let bookDir = await fs.readdirSync(des);
+  // let d = await fs.readFileSync(dataPath);
+  // console.log(d + "data here");
+  // Data = JSON.parse(d);
+  // console.log(Data + "data here");
 
-  let d = await fs.readFileSync(dataPath);
-  console.log(d + "data here");
-  Data = JSON.parse(d);
-  console.log(Data + "data here");
+  // if (!Data.hasOwnProperty("Books")) {
+  //   console.log("Here in the if ");
+  //   Data["Books"] = [];
+  // } else {
+  //   console.log("bot comeign in here ");
+  // }
+  // console.log(JSON.stringify(Data));
 
-  if (!Data.hasOwnProperty("Books")) {
-    console.log("Here in the if ");
-    Data["Books"] = [];
-  } else {
-    console.log("bot comeign in here ");
-  }
-  console.log(JSON.stringify(Data));
+  let goAhead = false;
   for (let i of files) {
-    console.log(i + "here");
-
     let book = new Book(pth + "\\" + i, des);
     await book.sayhell();
     await book.init();
   }
-  let goAhead = true;
-  let bookDir = await fs.readdirSync(des);
 
-  do {
-    for (let b of files) {
-      let k = b.split(".");
-      let exists = await fs.existsSync(des + "\\" + k[0]);
-      if (!exists) {
-        goAhead = false;
-      }
-    }
-  } while (!goAhead);
+  // console.log("sdfsdfadfasdfasdasdf");
+  // for (let b of bookDir) {
+  //   let book = new Book(pth, des);
+  //   let bk = {};
 
-  if (goAhead) {
-    console.log("sdfsdfadfasdfasdasdf");
-    for (let b of files) {
-      let book = new Book(pth, des);
-      let bk = {};
-      let cover = await book.getCover(b);
-      let chapters = await book.bookData(b);
+  //   let cover = await book.getCover(b);
+  //   let chapters = await book.bookData(b);
 
-      console.log(cover, chapters + "here this is ");
+  //   console.log(cover, chapters + "here this is ", b);
 
-      bk["Name"] = book.Name;
-      bk["Cover"] = book.Cover;
-      bk["Chapters"] = book.Chapters;
+  //   bk["Name"] = book.Name;
+  //   bk["Cover"] = book.Cover;
+  //   bk["Chapters"] = book.Chapters;
 
-      let chap = Data["Books"];
-      chap.push(bk);
-      Data["Books"] = chap;
-    }
-  }
+  //   let chap = Data["Books"];
+  //   chap.push(bk);
+  //   Data["Books"] = chap;
+  // }
+
+  res.send(path);
 
   // let wrt = await fs.writeFileSync(dataPath, JSON.stringify(Data));
+});
+
+Router.get("/allBooks", async (req, res) => {
+  const { path } = req.query;
+
+  console.log("in the all books ");
+
+  // prettier-ignore
+  let dataPath = './Database/Main.json'
+  let dataPathSub = "./Database/Sub.json";
+  let pth = "C:\\Users\\Vikleo\\Documents\\books";
+  let des = "C:\\Users\\Vikleo\\Desktop\\books";
+  let files = await fs.readdirSync(des);
+
+  let d = await fs.readFileSync(dataPath);
+  let dSub = await fs.readFileSync(dataPathSub);
+  let Data = JSON.parse(d);
+  let DataSub = JSON.parse(dSub);
+  if (!Data.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    Data["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    DataSub["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  let bk = Data["Books"];
+  let bkSub = DataSub["Books"];
+  for (let i of files) {
+    console.log(i, "here i");
+    let book = new Book(pth, des);
+    await book.getCover(i);
+    await book.bookData(i);
+    // console.log(book.Cover, book.Chapters);
+    let tempTwo = {
+      Name: book.Name,
+      Cover: book.Cover,
+      index: bkSub.length,
+    };
+    let temp = {
+      Name: book.Name,
+      Cover: book.Cover,
+      Chapters: book.Chapters,
+    };
+    let dont = true;
+    for (let o of bkSub) {
+      for (let c in o) {
+        if (o[c] === temp.Name) {
+          dont = false;
+        }
+      }
+    }
+    if (dont) {
+      bkSub.push(tempTwo);
+      bk.push(temp);
+    }
+  }
+  DataSub["Books"] = bkSub;
+  Data["Books"] = bk;
+  await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+  await fs.writeFileSync(dataPath, JSON.stringify(Data));
+  res.send(path);
 });
 
 Router.listen(port, () => {
