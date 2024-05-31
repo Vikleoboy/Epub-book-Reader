@@ -22,6 +22,12 @@ Welcome to the EPUB Book Reader App! This app is designed to enhance your readin
 - **Rate Books**: Rate the books you read to help others discover great reads.
 - **Search Books**: Search for books based on ratings, tags, and user recommendations.
 
+
+## Currently installiation would not work , the progress on the app 
+
+![Uploading Screenshot 2024-05-31 163904.png…]()
+
+
 ## 🔧 Installation
 
 To get started with the EPUB Book Reader App, follow these steps:
