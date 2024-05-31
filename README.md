@@ -1,4 +1,4 @@
-Sure, here is the README content that you can copy:
+Sure, here is the updated README content including the information about the Discord server:
 
 ---
 
@@ -68,6 +68,8 @@ We welcome contributions! If you'd like to help improve the app, please fork the
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+Join our [Discord server](https://discord.gg/your-invite-code) to collaborate and discuss ideas with the community.
 
 ## 📧 Contact
 
