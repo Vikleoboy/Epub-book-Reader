@@ -38,9 +38,14 @@ To get started with the EPUB Book Reader App, follow these steps:
    ```bash
    npm install
    ```
-4. Start the application:
+
+4. Install the required dependencies:
    ```bash
-   npm start
+   cd book_app
+   ```
+5. Start the application:
+   ```bash
+   npm run dev 
    ```
 
 ## 🛠️ Usage
