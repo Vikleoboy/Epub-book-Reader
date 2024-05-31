@@ -12,11 +12,25 @@ const { uid } = require("uid");
 const Book = require("epubapi");
 
 let cors = require("cors");
+const { runInContext } = require("vm");
 
-Router.use(cors());
+const corsOptions = {
+  origin: "http://localhost:3002", // Allow requests from this origin
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow these HTTP methods
+  allowedHeaders: "Content-Type,Authorization", // Allow these headers
+};
 
+Router.use(cors(corsOptions));
+
+Router.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 port = 3002;
-let Books = [];
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
@@ -29,12 +43,17 @@ Router.get("/quit", async (req, res) => {
 
 Router.get("/getCover", async (req, res) => {
   const { id } = req.query;
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+  let dSub = await fs.readFileSync(dataPathSub);
 
+  let DataSub = JSON.parse(dSub);
+  let Books = DataSub["Books"];
   if (Books != []) {
     for (let i of Books) {
-      if (id === i["name"] && i !== undefined) {
+      if (id === i["Name"] && i !== undefined) {
         try {
-          let bitmap = await fs.readFileSync(i["cover"]);
+          let bitmap = await fs.readFileSync(i["Cover"]);
           res.json({
             img: new Buffer(bitmap).toString("base64"),
           });
@@ -50,153 +69,127 @@ Router.get("/getCover", async (req, res) => {
 
 Router.get("/home", async (req, res) => {
   const { page } = req.query;
-  let pth = "C:\\Users\\Vikleo\\Documents\\books";
-  let des = "C:\\Users\\Vikleo\\Desktop\\books";
-  let files = await fs.readdirSync(des);
-  let Cover = [];
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+  let dSub = await fs.readFileSync(dataPathSub);
 
-  if (files.length > 0) {
-    for (let i of files) {
-      let book = await fs.readdirSync(des + "\\" + i);
-      let fld = false;
-      for (let b = 0; b < book.length; b++) {
-        let know = await fs.lstatSync(des + "\\" + i + "\\" + book[b]);
+  let DataSub = JSON.parse(dSub);
 
-        if (book[b].includes(".opf")) {
-          let rd = await fs.readFileSync(
-            des + "\\" + i + "\\" + book[b],
-            "utf8"
-          );
-          const $ = cheerio.load(rd);
-          const navContent = $("meta");
-          let coverImg = "";
-          for (let q of navContent) {
-            for (let n of q.attributes) {
-              if (n["value"] === "cover" && n["name"] === "name") {
-                for (let p of q.attributes) {
-                  if (p["name"] === "content") {
-                    let y = $("#" + p["value"]);
-                    let ref = y.attr("href");
-                    if (ref === undefined) {
-                      y = $("#CoverImage");
-                      ref = y.attr("href");
-                    }
-                    console.log(des.replaceAll("\\", "/"));
-                    Cover.push({
-                      name: i,
-                      cover: des.replaceAll("\\", "/") + "/" + i + "/" + ref,
-                      id: uid(),
-                    });
-                  }
-                }
-              }
-            }
+  let Books = [];
+  if (DataSub["Books"].length !== 0) {
+    for (let i of DataSub["Books"]) {
+      i["id"] = uid();
+      Books.push(i);
+    }
+  }
+  res.json({ info: Books });
+});
+let des = "C:\\Users\\Vikleo\\Desktop\\books";
+Router.use(express.static(des));
+
+Router.get("/Read/:id/:ind", async (req, res) => {
+  const { id, ind } = req.params;
+  console.log(id + " this is id of read ");
+
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+
+  let d = await fs.readFileSync(dataPath);
+  let dSub = await fs.readFileSync(dataPathSub);
+
+  let DataSub = JSON.parse(dSub);
+  let Data = JSON.parse(d);
+  if (DataSub["Books"].length !== 0) {
+    for (let i of DataSub["Books"]) {
+      if (i["Name"] === id) {
+        let les = Data["Books"][i["index"]]["Chapters"][ind];
+        let chap = await fs.readFileSync(les.link.split("#")[0]);
+        let some = await fs.readFileSync("./some.js").toString();
+        let css = "";
+        let $ = cheerio.load(chap);
+
+        let styles = $('link[rel~="stylesheet"]');
+        let fileName = styles.attr("href");
+        if (fileName !== undefined) {
+          let lk = les.link;
+          let sp = lk.split("/");
+          console.log(sp);
+          let ind = sp.indexOf(les.Name) + 1;
+          console.log(ind);
+          if (sp[ind].includes("o") || sp[ind].includes("O")) {
+            sp = sp.slice(0, ind + 1);
+          } else {
+            sp = sp.slice(0, ind);
           }
+
+          console.log(sp.join("/"), "here it is ");
+          sp.push(fileName);
+          let realFileName = sp.join("/");
+          console.log(realFileName);
+          styles.attr("href", realFileName);
+          console.log(les);
+          console.log(realFileName);
+          css = await fs.readFileSync(realFileName).toString();
+
+          console.log(css.includes("/*MAINHERE*/"));
+          if (!css.includes("/*MAINHERE*/")) {
+            css =
+              css +
+              `
+            /*MAINHERE*/
+
+              `;
+          }
+
+          css = css.split("/*MAINHERE*/");
+          css.pop();
+
+          let mainCss = await fs.readFileSync("./main.css").toString();
+          css.push(mainCss);
+
+          let out = css.join(`
+          /*MAINHERE*/
+                      `);
+
+          console.log(out.replace(/(\r\n|\n|\r)/gm, ""));
+
+          let wrt = await fs.writeFileSync(
+            realFileName,
+            out.replace(/(\r\n|\n|\r)/gm, "")
+          );
+        }
+
+        if ($('script[id~="codeHere"]').length === 0) {
+          $("head").append(`<script id="codeHere" >${some}</script>`);
         } else {
-          let o = await know.isDirectory();
-
-          if (o) {
-            let k = await fs.readdirSync(des + "\\" + i + "\\" + book[b]);
-            for (let s of k) {
-              if (s.includes(".opf")) {
-                let rd = await fs.readFileSync(
-                  des + "\\" + i + "\\" + book[b] + "\\" + s,
-                  "utf8"
-                );
-
-                const $ = cheerio.load(rd);
-                const navContent = $("meta");
-                let coverImg = "";
-                for (let q of navContent) {
-                  for (let n of q.attributes) {
-                    if (n["value"] === "cover" && n["name"] === "name") {
-                      for (let p of q.attributes) {
-                        if (p["name"] === "content") {
-                          let y = $("item");
-                          for (let n of y) {
-                            let e = n.attribs["id"];
-                            let v = n.attribs["href"];
-                            if (e === p["value"]) {
-                              ref = v;
-                            }
-                          }
-
-                          // let ref = y.attr("href");
-
-                          if (ref === undefined) {
-                            ref = y.attr("src");
-                          }
-                          let loc =
-                            des.replaceAll("\\", "/") +
-                            "/" +
-                            i +
-                            "/" +
-                            book[b] +
-                            "/" +
-                            ref;
-                          if (ref === undefined) {
-                            try {
-                              console.log("ohh yeahh came here");
-                              y = $("#CoverImage");
-                              ref = y.attr("href");
-                              const buffer = await fs.readFileSync(
-                                des + "\\" + i + "\\" + book[b] + "\\" + ref
-                              );
-                              let k = cheerio.load(buffer);
-                              ref = k("img");
-                              ref = ref.attr("src");
-                              if (ref.includes("..")) {
-                                ref = ref.replaceAll("..", "");
-                                loc =
-                                  des.replaceAll("\\", "/") +
-                                  "/" +
-                                  i +
-                                  "/" +
-                                  book[b] +
-                                  ref;
-                              }
-                            } catch (error) {}
-                          }
-                          console.log(des.replaceAll("\\", "/"));
-                          Cover.push({
-                            name: i,
-                            cover: loc,
-                            id: uid(),
-                          });
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        if (book[b].includes(".ncx")) {
-          let ncx = await fs.readFileSync(
-            des + "\\" + i + "\\" + book[b],
-            "utf8"
+          $('script[id~="codeHere"]').replaceWith(
+            `<script id="codeHere" >${some}</script>`
           );
-          const $ = cheerio.load(ncx);
-          const name = $("docTitle");
-          const navContent = $("navMap > navPoint");
-
-          let chaps = [];
-          for (let i of navContent) {
-            let b = $.load(i);
-            b = b("navLabel");
-            console.log(b.html());
-            chaps.push(b.text());
-          }
-          console.log(chaps);
         }
+
+        await fs.writeFileSync(les.link.split("#")[0], $.html());
+
+        let ok = false;
+
+        let bb = les.link.split("/");
+        bb.pop();
+        console.log(bb.join("/"));
+        let b = $("body").html();
+        let des = "C:/Users/Vikleo/Desktop/books";
+        // console.log(b);
+        res.json(
+          JSON.stringify({
+            ch: les.link.split("#")[0].replace(des, ""),
+            link: css,
+            base: bb.join("/"),
+          })
+        );
+
+        // res.json(JSON.stringify(les));
+        // res.send(les.link);
       }
     }
   }
-
-  Books = Cover;
-  res.json({ info: Books });
 });
 
 Router.get("/addFolder/", async (req, res) => {
