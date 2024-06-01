@@ -6,7 +6,7 @@ import axios from "axios";
 
 export const WorkArea = () => {
   const [bookWidth, setbookWidth] = useState(localStorage.getItem("w"));
-  const [Books, setBooks] = useState([]);
+  const [Books, setBooks] = useState();
 
   let baseUrl = "http://localhost:3002/";
 
@@ -15,6 +15,7 @@ export const WorkArea = () => {
       let book = await axios.get(baseUrl + "home");
 
       console.log(book.data);
+
       setBooks(book.data.info);
     };
     func();
@@ -29,10 +30,17 @@ export const WorkArea = () => {
       </div>
       <Slider val={bookWidth} changeBookWidth={setbookWidth} />
       <div className=" flex flex-wrap w-full h-full overflow-y-scroll">
-        <div className=" flex flex-wrap p-10 ">
-          {Books.map((i) => {
+        <div className=" flex flex-wrap p-10 w-full ">
+          {Books?.map((i) => {
             return <Book bok={i} id={i["id"]} val={bookWidth} />;
           })}
+
+          {Books === "error" ||
+            (Books === undefined && (
+              <div className=" text-2xl p-20  dark:text-gray-400  w-full h-full text-center">
+                No Books Added
+              </div>
+            ))}
         </div>
       </div>
     </div>

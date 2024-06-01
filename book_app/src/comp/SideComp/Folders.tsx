@@ -22,9 +22,7 @@ export const Folders = (props) => {
           <IoMdAdd className="   w-4 h-4 text-gray-300" />
         </div>
       </div>
-      {AddModle && (
-        <ModleAdd setAddModle={setAddModle} handleAddFolder={handleAddFolder} />
-      )}
+      {AddModle && <ModleAdd setAddModle={setAddModle} />}
       <div>
         {allBtns.map((btn) => {
           return (

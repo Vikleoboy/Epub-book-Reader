@@ -76,14 +76,19 @@ Router.get("/home", async (req, res) => {
   let DataSub = JSON.parse(dSub);
 
   let Books = [];
-  if (DataSub["Books"].length !== 0) {
-    for (let i of DataSub["Books"]) {
-      i["id"] = uid();
-      Books.push(i);
+  if (DataSub.Books !== undefined) {
+    if (DataSub["Books"].length !== 0) {
+      for (let i of DataSub["Books"]) {
+        i["id"] = uid();
+        Books.push(i);
+      }
     }
+    res.json({ info: Books });
+  } else {
+    res.json({ inof: "error" });
   }
-  res.json({ info: Books });
 });
+
 let des = "C:\\Users\\Vikleo\\Desktop\\books";
 Router.use(express.static(des));
 
@@ -104,89 +109,22 @@ Router.get("/Read/:id/:ind", async (req, res) => {
       if (i["Name"] === id) {
         let les = Data["Books"][i["index"]]["Chapters"][ind];
         let chap = await fs.readFileSync(les.link.split("#")[0]);
-        let some = await fs.readFileSync("./some.js").toString();
-        let css = "";
+
         let $ = cheerio.load(chap);
 
-        let styles = $('link[rel~="stylesheet"]');
-        let fileName = styles.attr("href");
-        if (fileName !== undefined) {
-          let lk = les.link;
-          let sp = lk.split("/");
-          console.log(sp);
-          let ind = sp.indexOf(les.Name) + 1;
-          console.log(ind);
-          if (sp[ind].includes("o") || sp[ind].includes("O")) {
-            sp = sp.slice(0, ind + 1);
-          } else {
-            sp = sp.slice(0, ind);
-          }
-
-          console.log(sp.join("/"), "here it is ");
-          sp.push(fileName);
-          let realFileName = sp.join("/");
-          console.log(realFileName);
-          styles.attr("href", realFileName);
-          console.log(les);
-          console.log(realFileName);
-          css = await fs.readFileSync(realFileName).toString();
-
-          console.log(css.includes("/*MAINHERE*/"));
-          if (!css.includes("/*MAINHERE*/")) {
-            css =
-              css +
-              `
-            /*MAINHERE*/
-
-              `;
-          }
-
-          css = css.split("/*MAINHERE*/");
-          css.pop();
-
-          let mainCss = await fs.readFileSync("./main.css").toString();
-          css.push(mainCss);
-
-          let out = css.join(`
-          /*MAINHERE*/
-                      `);
-
-          console.log(out.replace(/(\r\n|\n|\r)/gm, ""));
-
-          let wrt = await fs.writeFileSync(
-            realFileName,
-            out.replace(/(\r\n|\n|\r)/gm, "")
-          );
-        }
-
-        if ($('script[id~="codeHere"]').length === 0) {
-          $("head").append(`<script id="codeHere" >${some}</script>`);
-        } else {
-          $('script[id~="codeHere"]').replaceWith(
-            `<script id="codeHere" >${some}</script>`
-          );
-        }
-
-        await fs.writeFileSync(les.link.split("#")[0], $.html());
-
-        let ok = false;
-
-        let bb = les.link.split("/");
-        bb.pop();
-        console.log(bb.join("/"));
-        let b = $("body").html();
-        let des = "C:/Users/Vikleo/Desktop/books";
-        // console.log(b);
+        let head = $("head");
+        let link = "http://localhost:3002/" + les.link.replace(i["base"], "");
+        console.log(link);
+        head.prepend(`<base href= "${link}"  />`);
+        // console.log(head.html());
+        // console.log(les.link.split("#")[0]);
         res.json(
           JSON.stringify({
-            ch: les.link.split("#")[0].replace(des, ""),
-            link: css,
-            base: bb.join("/"),
+            ch: $.html(),
+            link: "something",
+            base: "somthing",
           })
         );
-
-        // res.json(JSON.stringify(les));
-        // res.send(les.link);
       }
     }
   }
@@ -200,22 +138,19 @@ Router.get("/addFolder/", async (req, res) => {
 
   // prettier-ignore
   let dataPath = './Database/Main.json'
-  let pth = "C:\\Users\\Vikleo\\Documents\\books";
+  let pth = path;
   let des = "C:\\Users\\Vikleo\\Desktop\\books";
-  let files = await fs.readdirSync(pth);
-  // let bookDir = await fs.readdirSync(des);
-  // let d = await fs.readFileSync(dataPath);
-  // console.log(d + "data here");
-  // Data = JSON.parse(d);
-  // console.log(Data + "data here");
 
-  // if (!Data.hasOwnProperty("Books")) {
-  //   console.log("Here in the if ");
-  //   Data["Books"] = [];
-  // } else {
-  //   console.log("bot comeign in here ");
-  // }
-  // console.log(JSON.stringify(Data));
+  try {
+    await fs.statSync(pth).isDirectory(); // if directory does not exist
+    res.json({ res: "Done" });
+  } catch (error) {
+    //else
+    res.json({ res: "NVP", error: error }); // sending not valid path
+    return;
+  }
+
+  let files = await fs.readdirSync(pth);
 
   let goAhead = false;
   for (let i of files) {
@@ -223,25 +158,6 @@ Router.get("/addFolder/", async (req, res) => {
     await book.sayhell();
     await book.init();
   }
-
-  // console.log("sdfsdfadfasdfasdasdf");
-  // for (let b of bookDir) {
-  //   let book = new Book(pth, des);
-  //   let bk = {};
-
-  //   let cover = await book.getCover(b);
-  //   let chapters = await book.bookData(b);
-
-  //   console.log(cover, chapters + "here this is ", b);
-
-  //   bk["Name"] = book.Name;
-  //   bk["Cover"] = book.Cover;
-  //   bk["Chapters"] = book.Chapters;
-
-  //   let chap = Data["Books"];
-  //   chap.push(bk);
-  //   Data["Books"] = chap;
-  // }
 
   res.send(path);
 
@@ -256,8 +172,16 @@ Router.get("/allBooks", async (req, res) => {
   // prettier-ignore
   let dataPath = './Database/Main.json'
   let dataPathSub = "./Database/Sub.json";
-  let pth = "C:\\Users\\Vikleo\\Documents\\books";
+  let pth = path;
   let des = "C:\\Users\\Vikleo\\Desktop\\books";
+
+  try {
+    await fs.statSync(pth).isDirectory(); // if directory does not exist
+  } catch (error) {
+    //else
+    res.json({ res: "NVP", error: error }); // sending not valid path
+    return;
+  }
   let files = await fs.readdirSync(des);
 
   let d = await fs.readFileSync(dataPath);
@@ -289,11 +213,13 @@ Router.get("/allBooks", async (req, res) => {
       Name: book.Name,
       Cover: book.Cover,
       index: bkSub.length,
+      base: des.replace(/\\/g, "/"),
     };
     let temp = {
       Name: book.Name,
       Cover: book.Cover,
       Chapters: book.Chapters,
+      base: des.replace(/\\/g, "/"),
     };
     let dont = true;
     for (let o of bkSub) {
@@ -312,7 +238,7 @@ Router.get("/allBooks", async (req, res) => {
   Data["Books"] = bk;
   await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
   await fs.writeFileSync(dataPath, JSON.stringify(Data));
-  res.send(path);
+  res.json({ res: "Done" });
 });
 
 Router.listen(port, () => {
