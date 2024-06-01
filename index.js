@@ -165,7 +165,7 @@ Router.get("/allBooks", async (req, res) => {
 
   let dataPath = "./Database/Main.json";
   let dataPathSub = "./Database/Sub.json";
-  let pth = path;
+  let pth = "";
   let des = mainDes;
 
   let files = await fs.readdirSync(des);

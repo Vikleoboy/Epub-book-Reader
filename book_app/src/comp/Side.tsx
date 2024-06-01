@@ -47,7 +47,7 @@ export const ModleAdd = (props) => {
 
   const handleAdd = async () => {
     await axios.get(url + "addFolder?path=" + path);
-    await axios.get(url + "allBooks?path=" + path);
+    await axios.get(url + "allBooks");
     props.setAddModle(false);
   };
 
