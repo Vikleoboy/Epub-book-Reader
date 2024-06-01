@@ -12,6 +12,7 @@ const { uid } = require("uid");
 const Book = require("epubapi");
 
 let cors = require("cors");
+let mainDes = __dirname + "\\books";
 const { runInContext } = require("vm");
 
 const corsOptions = {
@@ -89,7 +90,7 @@ Router.get("/home", async (req, res) => {
   }
 });
 
-let des = "C:\\Users\\Vikleo\\Desktop\\books";
+let des = mainDes;
 Router.use(express.static(des));
 
 Router.get("/Read/:id/:ind", async (req, res) => {
@@ -139,23 +140,14 @@ Router.get("/addFolder/", async (req, res) => {
   // prettier-ignore
   let dataPath = './Database/Main.json'
   let pth = path;
-  let des = "C:\\Users\\Vikleo\\Desktop\\books";
-
-  try {
-    await fs.statSync(pth).isDirectory(); // if directory does not exist
-    res.json({ res: "Done" });
-  } catch (error) {
-    //else
-    res.json({ res: "NVP", error: error }); // sending not valid path
-    return;
-  }
+  let des = mainDes;
 
   let files = await fs.readdirSync(pth);
 
   let goAhead = false;
   for (let i of files) {
     let book = new Book(pth + "\\" + i, des);
-    await book.sayhell();
+
     await book.init();
   }
 
@@ -167,21 +159,15 @@ Router.get("/addFolder/", async (req, res) => {
 Router.get("/allBooks", async (req, res) => {
   const { path } = req.query;
 
+  console.log("I HAV ENO I DEA WHATS HAPPENING ");
+
   console.log("in the all books ");
 
-  // prettier-ignore
-  let dataPath = './Database/Main.json'
+  let dataPath = "./Database/Main.json";
   let dataPathSub = "./Database/Sub.json";
   let pth = path;
-  let des = "C:\\Users\\Vikleo\\Desktop\\books";
+  let des = mainDes;
 
-  try {
-    await fs.statSync(pth).isDirectory(); // if directory does not exist
-  } catch (error) {
-    //else
-    res.json({ res: "NVP", error: error }); // sending not valid path
-    return;
-  }
   let files = await fs.readdirSync(des);
 
   let d = await fs.readFileSync(dataPath);
@@ -238,7 +224,7 @@ Router.get("/allBooks", async (req, res) => {
   Data["Books"] = bk;
   await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
   await fs.writeFileSync(dataPath, JSON.stringify(Data));
-  res.json({ res: "Done" });
+  res.send(path);
 });
 
 Router.listen(port, () => {

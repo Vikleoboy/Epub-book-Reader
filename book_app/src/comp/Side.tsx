@@ -46,15 +46,8 @@ export const ModleAdd = (props) => {
   };
 
   const handleAdd = async () => {
-    let d = await axios.get(url + "addFolder?path=" + path);
+    await axios.get(url + "addFolder?path=" + path);
     await axios.get(url + "allBooks?path=" + path);
-    // if (d.data.res === "NVP") {
-    //   setStatus(true);
-    // }
-    // if (d.data.res === "Done") {
-    //   setloading(true); // will makeing the ui say loading when it is loading the data
-    // }
-
     props.setAddModle(false);
   };
 
