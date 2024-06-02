@@ -70,13 +70,14 @@ export const ModaleAddFolder = (props) => {
       setStatus(true);
       setloading(false);
     }
-
+    console.log(d.data.res);
     if (d.data.res === "Done") {
       setloading(true);
     }
 
     await axios.get(url + "allBooks");
-    if (d.data?.res === "Done") {
+    console.log(d.data.res);
+    if (d.data.res === "Done") {
       props.setAddModle(false);
       props.refresh((f) => !f);
     }

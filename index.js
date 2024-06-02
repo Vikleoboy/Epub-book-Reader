@@ -4,12 +4,14 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const express = require("express");
+const fs = require("fs");
 const fsPromises = fs.promises;
 const Router = express();
 
 const cheerio = require("cheerio");
 const { uid } = require("uid");
 const Book = require("epubapi");
+const unzipper = require("unzipper");
 
 let cors = require("cors");
 let mainDes = __dirname + "\\books";
@@ -240,40 +242,74 @@ Router.get("/Read/:id/:ind", async (req, res) => {
 });
 
 Router.get("/addFolder/", async (req, res) => {
-  const { path } = req.query;
+  const { path: p } = req.query;
   // res.send(path);
 
-  let fld = fs.existsSync(path);
+  let fld = fs.existsSync(p);
   let send = false;
   if (!fld) {
     res.json({ res: "NVP" });
     return;
-  } else {
-    send = true;
   }
 
   console.log(path);
 
   let dataPath = "./Database/Main.json";
-  let pth = path;
+  let pth = p;
   let des = mainDes;
 
-  let files = await fs.readdirSync(pth);
+  try {
+    // Read the directory to get all EPUB files
+    const files = await fsPromises.readdir(pth);
 
-  let goAhead = false;
-  for (let i of files) {
-    try {
-      let book = new Book(pth + "\\" + i, des);
-      await book.init();
-    } catch (error) {
-      console.log(error);
+    for (file in files) {
+      const filePath = path.join(pth, file);
+      const destPath = path.join(des, path.basename(file, path.extname(file)));
+
+      // Only process .epub files
+      if (path.extname(file).toLowerCase() === ".epub") {
+        console.log(`Processing file: ${filePath}`);
+        await extractAndDeleteEpub(filePath, des);
+      }
     }
+  } catch (error) {
+    console.error("Error reading directory:", error);
+  } finally {
+    res.json({ res: "Done" });
   }
-
-  res.json({ res: "Done" });
 
   // let wrt = await fs.writeFileSync(dataPath, JSON.stringify(Data));
 });
+
+async function extractAndDeleteEpub(filePath, dest) {
+  try {
+    let id = uid(7);
+    let realDes = dest + "\\" + id + ".epub";
+    let destPath = dest + "\\" + id;
+    // Create the destination directory if it doesn't exist
+    await fsPromises.mkdir(destPath, { recursive: true });
+    console.log(`Created directory: ${destPath}`);
+    await fsPromises.copyFile(filePath, realDes);
+    // Extract the EPUB file
+    await fs
+      .createReadStream(realDes)
+      .pipe(unzipper.Extract({ path: destPath }))
+      .promise();
+    console.log(`Extracted file: ${filePath} to ${destPath}`);
+
+    // Verify extraction completion before deleting
+    const extractedFiles = await fsPromises.readdir(destPath);
+    if (extractedFiles.length > 0) {
+      // Synchronously delete the original EPUB file
+      await fs.unlinkSync(realDes);
+      console.log(`Deleted file: ${destPath + ".zip"}`);
+    } else {
+      throw new Error(`Extraction failed or directory empty: ${destPath}`);
+    }
+  } catch (error) {
+    console.error(`Error processing file ${filePath}:`, error);
+  }
+}
 
 Router.get("/allBooks", async (req, res) => {
   const { path } = req.query;
