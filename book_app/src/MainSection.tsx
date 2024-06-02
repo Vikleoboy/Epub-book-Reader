@@ -21,6 +21,7 @@ export const MainSection = (props) => {
         {props.allBtns.map((btn) => {
           return (
             <div
+              key={btn}
               tabIndex={0}
               className="px-1 rounded-lg  hover:bg-gray-200 dark:hover:bg-gray-800 dark:focus:bg-gray-800 focus:bg-gray-200 py-1 flex space-x-2  text-xl text-gray-500 dark:text-gray-400 items-center"
             >

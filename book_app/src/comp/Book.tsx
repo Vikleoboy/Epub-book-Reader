@@ -13,7 +13,7 @@ export const Book = (props) => {
   useEffect(() => {
     let m = async () => {
       let bk = await axios.get(baseUrl + "getCover?id=" + props.bok?.Name);
-      console.log(bk);
+
       // const img = new Blob([bk.data]);
       // const url = URL.createObjectURL(img);
       // console.log(url);

@@ -5,7 +5,7 @@ import { Folders } from "./SideComp/Folders.tsx";
 
 import axios from "axios";
 
-export const Side = () => {
+export const Side = (props) => {
   const [AddModle, setAddModle] = useState(false);
   let url = "http://localhost:3002/";
   let allBtns = ["Library", "Collaction", "Saved", "Liked"];
@@ -27,6 +27,7 @@ export const Side = () => {
 
         <MainSection allBtns={allBtns} />
         <Folders
+          setFresh={props.setFresh}
           allBtns={allBtns}
           AddModle={AddModle}
           setAddModle={setAddModle}
@@ -46,9 +47,23 @@ export const ModleAdd = (props) => {
   };
 
   const handleAdd = async () => {
-    await axios.get(url + "addFolder?path=" + path);
+    setloading(true);
+    let d = await axios.get(url + "addFolder?path=" + path);
+
+    if (d.data?.res === "NVP") {
+      setStatus(true);
+      setloading(false);
+    }
+
+    if (d.data === "Done") {
+      setloading(true);
+    }
+
     await axios.get(url + "allBooks");
-    props.setAddModle(false);
+    if (d.data?.res === "Done") {
+      props.setAddModle(false);
+      props.fresh((f) => !f);
+    }
   };
 
   return (
@@ -56,7 +71,7 @@ export const ModleAdd = (props) => {
       tabIndex={2}
       className=" fixed inset-0 flex items-center justify-center z-50"
     >
-      {true && (
+      {!loading && (
         <div className=" p-10 dark:bg-gray-800/80 bg-gray-300 flex  flex-col justify-center items-center backdrop-blur-sm  rounded-lg p-10 px-7 space-y-7">
           <p className="opacity-100 text-3xl text-gray-300 ">
             Select the Folder
@@ -70,7 +85,7 @@ export const ModleAdd = (props) => {
               placeholder=" Path to the Folder"
               id=""
             />
-            {false && (
+            {Status && (
               <p className=" px-2 dark:text-red-500 ">Not Valid Path</p>
             )}
           </div>
@@ -93,7 +108,11 @@ export const ModleAdd = (props) => {
           </div>
         </div>
       )}
-      {false && <p>Loading</p>}
+      {loading && (
+        <p className=" text-2xl p-10 dark:bg-gray-800/80 bg-gray-300 flex  flex-col justify-center items-center backdrop-blur-sm  rounded-lg p-10 px-7 space-y-7">
+          Loading ...
+        </p>
+      )}
     </div>
   );
 };

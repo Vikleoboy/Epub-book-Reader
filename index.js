@@ -4,24 +4,24 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const express = require("express");
-const fs = require("fs");
+const fsPromises = fs.promises;
 const Router = express();
-const AdmZip = require("adm-zip");
+
 const cheerio = require("cheerio");
 const { uid } = require("uid");
 const Book = require("epubapi");
 
 let cors = require("cors");
 let mainDes = __dirname + "\\books";
-const { runInContext } = require("vm");
 
-const corsOptions = {
-  origin: "http://localhost:3002", // Allow requests from this origin
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow these HTTP methods
-  allowedHeaders: "Content-Type,Authorization", // Allow these headers
-};
+// const corsOptions = {
+//   origin: "http://localhost:3002", // Allow requests from this origin
+//   methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow these HTTP methods
+//   allowedHeaders: "Content-Type,Authorization", // Allow these headers
+// };
 
-Router.use(cors(corsOptions));
+Router.use(cors());
+Router.use(express.json());
 
 Router.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -40,6 +40,114 @@ Router.get("/quit", async (req, res) => {
   res.send("cool");
   console.log("its working");
   app.quit();
+});
+
+Router.post("/addBook", async (req, res) => {
+  console.log("in here ");
+
+  let p = req.body["pm"];
+  console.log(p);
+  // acessing the databse
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+
+  let d = await fs.readFileSync(dataPath);
+  let dSub = await fs.readFileSync(dataPathSub);
+  let Data = JSON.parse(d);
+  let DataSub = JSON.parse(dSub);
+
+  //checking if Books is there  in the databse
+  if (!Data.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    Data["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    DataSub["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checking if the valid path
+  let pth = p.replace(/"/g, "");
+  console.log(pth, p, "this is here ");
+  let fld = fs.existsSync(pth);
+  var send = false;
+  if (!fld) {
+    res.json({ res: "NVP" });
+    return;
+  } else {
+    send = true;
+  }
+
+  // logic for add the book in the destination and Databse
+  try {
+    // initialise book
+
+    let book = new Book(pth, mainDes);
+
+    // dummy variables
+    let bk = Data["Books"];
+    let bkSub = DataSub["Books"];
+
+    // reading the book Data
+    let n = path.basename(pth);
+    n = n.split(".");
+    n.pop();
+    let m = n.join(".");
+    n = [m];
+
+    console.log(n);
+
+    await book.init();
+
+    await book.getCover(n);
+    await book.bookData(n);
+    // console.log(book.Cover, book.Chapters);
+
+    // templets for adding the book for each databse
+    let tempTwo = {
+      Name: book.Name,
+      Cover: book.Cover,
+      index: bkSub.length,
+      base: des.replace(/\\/g, "/"),
+    };
+    let temp = {
+      Name: book.Name,
+      Cover: book.Cover,
+      Chapters: book.Chapters,
+      base: des.replace(/\\/g, "/"),
+    };
+
+    // cheking if the book alredy exists in the databse
+    let dont = true;
+
+    for (let o of bkSub) {
+      for (let c in o) {
+        if (o[c] === temp.Name) {
+          dont = false;
+        }
+      }
+    }
+    if (dont) {
+      bkSub.push(tempTwo);
+      bk.push(temp);
+    }
+
+    // writeing the book to the databse
+    DataSub["Books"] = bkSub;
+    Data["Books"] = bk;
+    await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+    await fs.writeFileSync(dataPath, JSON.stringify(Data));
+
+    // ending the programm with response
+    res.json({ res: "Done" });
+  } catch (error) {
+    console.log(error);
+    res.json({ res: "Done" });
+  }
 });
 
 Router.get("/getCover", async (req, res) => {
@@ -135,10 +243,18 @@ Router.get("/addFolder/", async (req, res) => {
   const { path } = req.query;
   // res.send(path);
 
+  let fld = fs.existsSync(path);
+  let send = false;
+  if (!fld) {
+    res.json({ res: "NVP" });
+    return;
+  } else {
+    send = true;
+  }
+
   console.log(path);
 
-  // prettier-ignore
-  let dataPath = './Database/Main.json'
+  let dataPath = "./Database/Main.json";
   let pth = path;
   let des = mainDes;
 
@@ -146,12 +262,15 @@ Router.get("/addFolder/", async (req, res) => {
 
   let goAhead = false;
   for (let i of files) {
-    let book = new Book(pth + "\\" + i, des);
-
-    await book.init();
+    try {
+      let book = new Book(pth + "\\" + i, des);
+      await book.init();
+    } catch (error) {
+      console.log(error);
+    }
   }
 
-  res.send(path);
+  res.json({ res: "Done" });
 
   // let wrt = await fs.writeFileSync(dataPath, JSON.stringify(Data));
 });
@@ -250,9 +369,10 @@ const createWindow = () => {
   // mainWindow.webContents.openDevTools()
 };
 
-// // This method will be called when Electron has finished
-// // initialization and is ready to create browser windows.
-// // Some APIs can only be used after this event occurs.
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+
 // app.whenReady().then(() => {
 //   createWindow();
 

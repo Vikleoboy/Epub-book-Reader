@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Book } from "./book.tsx";
-import { Slider } from "./slider.tsx";
+import { Slider } from "./MainComp/Slider.tsx";
 import { useEffect } from "react";
 import axios from "axios";
 
-export const WorkArea = () => {
+export const WorkArea = (props) => {
   const [bookWidth, setbookWidth] = useState(localStorage.getItem("w"));
   const [Books, setBooks] = useState();
-
+  const [refresh, setrefresh] = useState(false);
   let baseUrl = "http://localhost:3002/";
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export const WorkArea = () => {
       setBooks(book.data.info);
     };
     func();
-  }, []);
+  }, [refresh]);
 
   return (
     <div className=" rounded flex flex-col w-full ">
@@ -28,11 +28,15 @@ export const WorkArea = () => {
           Library
         </p>
       </div>
-      <Slider val={bookWidth} changeBookWidth={setbookWidth} />
+      <Slider
+        val={bookWidth}
+        refresh={setrefresh}
+        changeBookWidth={setbookWidth}
+      />
       <div className=" flex flex-wrap w-full h-full overflow-y-scroll">
         <div className=" flex flex-wrap p-10 w-full ">
           {Books?.map((i) => {
-            return <Book bok={i} id={i["id"]} val={bookWidth} />;
+            return <Book key={i["id"]} bok={i} id={i["id"]} val={bookWidth} />;
           })}
 
           {Books === "error" ||
