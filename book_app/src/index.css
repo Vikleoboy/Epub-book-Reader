@@ -21,8 +21,8 @@ body {
   min-width: 100vw;
   min-height: 100vh;
   max-height: 100vh;
-  overflow-y: hidden;
-
+  overflow-x: hidden;
+  
 }
 
 /* The slider handle (the circle) */
@@ -42,8 +42,10 @@ body {
 } 
 
 #root {
-  min-width: 100vw;
+  min-width: 100%;
   min-height: 100vh;
+  margin: 0px;
+  padding: 0px;
 }
 
 .meow-in:focus {

@@ -6,7 +6,7 @@ import "./css/Book.scss";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import logo from "../assets/book-covers-big-2019101610.jpg";
-
+import { RiDeleteBinLine } from "react-icons/ri";
 export const Book = (props) => {
   let baseUrl = "http://localhost:3002/";
   const [cover, setCover] = useState();
@@ -26,11 +26,16 @@ export const Book = (props) => {
     window.open("/read/" + props.bok.Name, "_blank");
   };
 
+  let DelBook = async () => {
+    await axios.get(baseUrl + `delBook?id=${props.bok.Name}`);
+    props.fresh((d) => !d);
+  };
+
   return (
     <motion.div
       style={{ width: `${props.val}%` }}
       tabIndex={0}
-      className=" w-[30%] rounded-2xl  flex flex-col    m-1 my-2  "
+      className="  rounded-2xl  flex flex-col    m-1 my-2  "
     >
       <div className=" relative  flex justify-end text-gray-500 ">
         <div tabIndex={1} className="z-20 relative threeDots">
@@ -40,12 +45,17 @@ export const Book = (props) => {
               <div className=" flex  px-1 justify-between">
                 <div
                   tabIndex={2}
-                  className=" text-xl text-gray-400 focus:text-red-500 "
+                  className=" text-xl hover:text-2xl text-gray-400  "
                 >
                   <Ai.AiFillHeart />
                 </div>
-                <div className=" text-2xl text-gray-100 ">
-                  <Gr.GrFormAdd />
+                <div
+                  onClick={DelBook}
+                  className=" text-xl hover:text-2xl text-red-500 "
+                >
+                  {/* <Gr.GrFormAdd /> */}
+
+                  <RiDeleteBinLine />
                 </div>
               </div>
               <p>something</p>

@@ -13,7 +13,7 @@ export const Slider = (props) => {
 
   return (
     <>
-      <div className=" flex justify-between items-center bg-gray-100 dark:bg-gray-900 shadow-inner rounded-lg mx-10 mt-4 border dark:border-gray-800 sticky bottom-0  px-10  py-5">
+      <div className="  flex justify-between items-center bg-gray-100 dark:bg-gray-900 shadow-inner rounded-lg mx-10 mt-4 border dark:border-gray-800 sticky bottom  px-8  py-5">
         <div className="  text-gray-500 flex justify-center items-center ">
           {/* <p>Size</p> */}
 
@@ -21,7 +21,7 @@ export const Slider = (props) => {
             id="default-range"
             type="range"
             min={10}
-            max={60}
+            max={23}
             value={props.val}
             onChange={handleChange}
             className=" w-30 h-2 bg-gray-200 dark:bg-gray-800 text-blue-500 border-cyan-500 slider rounded-lg appearance-none cursor-pointer "

@@ -14,6 +14,8 @@ const Book = require("epubapi");
 const unzipper = require("unzipper");
 
 let cors = require("cors");
+const { default: axios } = require("axios");
+const { execSync } = require("child_process");
 let mainDes = __dirname + "\\books";
 
 // const corsOptions = {
@@ -21,6 +23,17 @@ let mainDes = __dirname + "\\books";
 //   methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow these HTTP methods
 //   allowedHeaders: "Content-Type,Authorization", // Allow these headers
 // };
+
+let t = async () => {
+  let y = await fs.existsSync("./Database");
+  if (!y) {
+    await fs.mkdirSync("./Database");
+    await fs.writeFileSync("./Database/Main.json", "{}");
+    await fs.writeFileSync("./Database/Sub.json", "{}");
+  }
+};
+
+t();
 
 Router.use(cors());
 Router.use(express.json());
@@ -72,6 +85,20 @@ Router.post("/addBook", async (req, res) => {
     console.log("not comeign in here ");
   }
 
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    Data["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    Data["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+
   // checking if the valid path
   let pth = p.replace(/"/g, "");
   console.log(pth, p, "this is here ");
@@ -96,14 +123,11 @@ Router.post("/addBook", async (req, res) => {
 
     // reading the book Data
     let n = path.basename(pth);
-    n = n.split(".");
-    n.pop();
-    let m = n.join(".");
-    n = [m];
+    n = n.replace(".epub", "");
 
     console.log(n);
 
-    await book.init();
+    let results = await execSync(`python ./addBook.py  "${pth}" "${mainDes}"`);
 
     await book.getCover(n);
     await book.bookData(n);
@@ -218,13 +242,15 @@ Router.get("/Read/:id/:ind", async (req, res) => {
   if (DataSub["Books"].length !== 0) {
     for (let i of DataSub["Books"]) {
       if (i["Name"] === id) {
-        let les = Data["Books"][i["index"]]["Chapters"][ind];
+        let index = DataSub["Books"].indexOf(i);
+        let les = Data["Books"][index]["Chapters"][ind];
         let chap = await fs.readFileSync(les.link.split("#")[0]);
 
         let $ = cheerio.load(chap);
 
         let head = $("head");
-        let link = "http://localhost:3002/" + les.link.replace(i["base"], "");
+        let link =
+          "http://localhost:3002/" + les.link.replace(DataSub["Base"], "");
         console.log(link);
         head.prepend(`<base href= "${link}"  />`);
         // console.log(head.html());
@@ -236,6 +262,38 @@ Router.get("/Read/:id/:ind", async (req, res) => {
             base: "somthing",
           })
         );
+      }
+    }
+  }
+});
+
+Router.get("/delBook", async (req, res) => {
+  const { id } = req.query;
+  console.log(id + " this is id of read ");
+
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+
+  let d = await fs.readFileSync(dataPath);
+  let dSub = await fs.readFileSync(dataPathSub);
+
+  let DataSub = JSON.parse(dSub);
+  let Data = JSON.parse(d);
+
+  if (DataSub["Books"].length !== 0) {
+    for (let i of DataSub["Books"]) {
+      if (i["Name"] === id) {
+        let index = DataSub["Books"].indexOf(i);
+
+        if (index > -1) {
+          // only splice array when item is found
+          DataSub["Books"].splice(index, 1); // 2nd parameter means remove one item only
+          Data["Books"].splice(index, 1);
+        }
+
+        await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+        await fs.writeFileSync(dataPath, JSON.stringify(Data));
+        res.json({ res: "Done" });
       }
     }
   }
@@ -257,21 +315,14 @@ Router.get("/addFolder/", async (req, res) => {
   let dataPath = "./Database/Main.json";
   let pth = p;
   let des = mainDes;
-
   try {
     // Read the directory to get all EPUB files
-    const files = await fsPromises.readdir(pth);
-
-    for (file in files) {
-      const filePath = path.join(pth, file);
-      const destPath = path.join(des, path.basename(file, path.extname(file)));
-
-      // Only process .epub files
-      if (path.extname(file).toLowerCase() === ".epub") {
-        console.log(`Processing file: ${filePath}`);
-        await extractAndDeleteEpub(filePath, des);
-      }
-    }
+    let realPath = pth.replace(/\\/g, "/");
+    let realDes = des.replace(/\\/g, "/") + "/";
+    console.log(pth);
+    console.log(pth.replace(/\\/g, "/"), des.replace(/\\/g, "/") + "/");
+    let results = await execSync(`python ./addFolder.py  "${pth}" "${des}"`);
+    console.log(results);
   } catch (error) {
     console.error("Error reading directory:", error);
   } finally {
@@ -280,36 +331,6 @@ Router.get("/addFolder/", async (req, res) => {
 
   // let wrt = await fs.writeFileSync(dataPath, JSON.stringify(Data));
 });
-
-async function extractAndDeleteEpub(filePath, dest) {
-  try {
-    let id = uid(7);
-    let realDes = dest + "\\" + id + ".epub";
-    let destPath = dest + "\\" + id;
-    // Create the destination directory if it doesn't exist
-    await fsPromises.mkdir(destPath, { recursive: true });
-    console.log(`Created directory: ${destPath}`);
-    await fsPromises.copyFile(filePath, realDes);
-    // Extract the EPUB file
-    await fs
-      .createReadStream(realDes)
-      .pipe(unzipper.Extract({ path: destPath }))
-      .promise();
-    console.log(`Extracted file: ${filePath} to ${destPath}`);
-
-    // Verify extraction completion before deleting
-    const extractedFiles = await fsPromises.readdir(destPath);
-    if (extractedFiles.length > 0) {
-      // Synchronously delete the original EPUB file
-      await fs.unlinkSync(realDes);
-      console.log(`Deleted file: ${destPath + ".zip"}`);
-    } else {
-      throw new Error(`Extraction failed or directory empty: ${destPath}`);
-    }
-  } catch (error) {
-    console.error(`Error processing file ${filePath}:`, error);
-  }
-}
 
 Router.get("/allBooks", async (req, res) => {
   const { path } = req.query;
@@ -342,6 +363,19 @@ Router.get("/allBooks", async (req, res) => {
     console.log("not comeign in here ");
   }
 
+  if (!Data.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    Data["Base"] = des.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    DataSub["Base"] = des.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+
   let bk = Data["Books"];
   let bkSub = DataSub["Books"];
   for (let i of files) {
@@ -353,14 +387,11 @@ Router.get("/allBooks", async (req, res) => {
     let tempTwo = {
       Name: book.Name,
       Cover: book.Cover,
-      index: bkSub.length,
-      base: des.replace(/\\/g, "/"),
     };
     let temp = {
       Name: book.Name,
       Cover: book.Cover,
       Chapters: book.Chapters,
-      base: des.replace(/\\/g, "/"),
     };
     let dont = true;
     for (let o of bkSub) {

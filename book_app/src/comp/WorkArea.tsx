@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Book } from "./book.tsx";
-import { Slider } from "./MainComp/Slider.tsx";
+import { Book } from "./Book.tsx";
+import { Slider } from "./Slider.tsx";
 import { useEffect } from "react";
 import axios from "axios";
 
@@ -22,7 +22,7 @@ export const WorkArea = (props) => {
   }, [refresh]);
 
   return (
-    <div className=" rounded flex flex-col w-full ">
+    <div className=" relative w-full rounded flex flex-col  ">
       <div className="titlebar">
         <p className=" pt-20 px-14  text-slate-900 dark:text-gray-300 text-6xl">
           Library
@@ -33,19 +33,26 @@ export const WorkArea = (props) => {
         refresh={setrefresh}
         changeBookWidth={setbookWidth}
       />
-      <div className=" flex flex-wrap w-full h-full overflow-y-scroll">
-        <div className=" flex flex-wrap p-10 w-full ">
-          {Books?.map((i) => {
-            return <Book key={i["id"]} bok={i} id={i["id"]} val={bookWidth} />;
-          })}
 
-          {Books === "error" ||
-            (Books === undefined && (
-              <div className=" text-2xl p-20  dark:text-gray-400  w-full h-full text-center">
-                No Books Added
-              </div>
-            ))}
-        </div>
+      <div className=" w-full flex flex-wrap p-10 overflow-y-scroll ">
+        {Books?.map((i) => {
+          return (
+            <Book
+              key={i["id"]}
+              bok={i}
+              id={i["id"]}
+              fresh={setrefresh}
+              val={bookWidth}
+            />
+          );
+        })}
+
+        {Books === "error" ||
+          (Books === undefined && (
+            <div className=" text-2xl p-20  dark:text-gray-400  w-full h-full text-center">
+              No Books Added
+            </div>
+          ))}
       </div>
     </div>
   );
