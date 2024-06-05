@@ -1,5 +1,3 @@
-Sure, here is the updated README content including the information about the Discord server:
-
 ---
 
 # 📚 EPUB Book Reader App
