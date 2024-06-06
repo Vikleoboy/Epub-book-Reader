@@ -5,7 +5,7 @@ const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const express = require("express");
 const fs = require("fs");
-const fsPromises = fs.promises;
+
 const Router = express();
 
 const cheerio = require("cheerio");
@@ -30,6 +30,11 @@ let t = async () => {
     await fs.mkdirSync("./Database");
     await fs.writeFileSync("./Database/Main.json", "{}");
     await fs.writeFileSync("./Database/Sub.json", "{}");
+  }
+
+  let n = await fs.existsSync("./books");
+  if (!n) {
+    await fs.mkdirSync("./books");
   }
 };
 
