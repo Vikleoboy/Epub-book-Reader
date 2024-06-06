@@ -33,14 +33,16 @@ export const Book = (props) => {
 
   return (
     <motion.div
-      style={{ width: `${props.val}%` }}
+      initial={{ opacity: 0 }}
+      animate={{ width: `${props.val}%`, opacity: 1 }}
+      transition={{ opacity: { ease: "easeIn", duration: 0.5 } }}
       tabIndex={0}
-      className="  rounded-2xl  flex flex-col    m-1 my-2  "
+      className=" rounded-2xl  flex flex-col    m-1 my-2  "
     >
       <div className=" relative  flex justify-end text-gray-500 ">
         <div tabIndex={1} className="z-20 relative threeDots">
           <Bs.BsThreeDots />
-          <div className=" relative  b">
+          <motion.div className=" relative  b">
             <div className=" bg-gray-100 dark:text-gray-400 dark:bg-gray-800  border dark:border-gray-500 border-gray-300 shadow-lg dark:shadow-slate-500   rounded-lg  overflow-hidden  threeContent z-30 flex flex-col p-2">
               <div className=" flex  px-1 justify-between">
                 <div
@@ -49,34 +51,49 @@ export const Book = (props) => {
                 >
                   <Ai.AiFillHeart />
                 </div>
-                <div
+                <motion.div
+                  animate={{ rotate: 0 }}
+                  whileHover={{ rotate: [10, -10, 0], scale: 1.1 }}
+                  transition={{ duration: 0.2 }}
                   onClick={DelBook}
-                  className=" text-xl hover:text-2xl text-red-500 "
+                  className=" text-xl  text-red-500 "
                 >
                   {/* <Gr.GrFormAdd /> */}
 
                   <RiDeleteBinLine />
-                </div>
+                </motion.div>
               </div>
-              <p>something</p>
-              <p>something</p>
+              <motion.div>
+                <motion.p
+                  initial={{ x: 100, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 1 }}
+                >
+                  Somthing
+                </motion.p>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      <div className="p-3" onClick={openBook}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ ease: "easeIn", duration: 1 }}
+        className="p-3 w-full"
+        onClick={openBook}
+      >
         <img
           className=" z-0  shadow-xl rounded-lg shadow-gray-800  w-full object-contain "
           src={cover === "error" ? logo : `data:image/jpeg;base64,${cover}`}
           alt=""
         />
-      </div>
+      </motion.div>
       <div className=" my-1 px-2">
         <div className="flex">
           <p className=" text-xl dark:text-gray-400 h-10 overflow-hidden whitespace-nowrap ">
-            {" "}
-            {props.bok["Name"]}{" "}
+            {props.bok["Name"]}
           </p>
           <p className="p-1">...</p>
         </div>

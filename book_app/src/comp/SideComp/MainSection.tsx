@@ -12,7 +12,7 @@ import { BsBook } from "react-icons/bs";
 
 export const MainSection = (props) => {
   return (
-    <div className="p-1">
+    <div className="   p-1">
       <p className=" text-2xl  text-gray-600 dark:text-gray-300  ">
         Apple Books
       </p>

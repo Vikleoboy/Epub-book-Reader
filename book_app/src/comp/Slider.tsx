@@ -13,15 +13,15 @@ export const Slider = (props) => {
 
   return (
     <>
-      <div className="  flex justify-between items-center bg-gray-100 dark:bg-gray-900 shadow-inner rounded-lg mx-10 mt-4 border dark:border-gray-800 sticky bottom  px-8  py-5">
-        <div className="  text-gray-500 flex justify-center items-center ">
+      <div className="   mx-8  flex justify-between items-center bg-gray-100 dark:bg-gray-900 shadow-inner rounded-lg  mt-4 border dark:border-gray-800 sticky bottom  px-8  py-5">
+        <div className="   flex justify-center items-center ">
           {/* <p>Size</p> */}
 
           <input
             id="default-range"
             type="range"
             min={10}
-            max={23}
+            max={25}
             value={props.val}
             onChange={handleChange}
             className=" w-30 h-2 bg-gray-200 dark:bg-gray-800 text-blue-500 border-cyan-500 slider rounded-lg appearance-none cursor-pointer "

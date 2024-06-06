@@ -3,6 +3,7 @@ import { Book } from "./Book.tsx";
 import { Slider } from "./Slider.tsx";
 import { useEffect } from "react";
 import axios from "axios";
+import { motion } from "framer-motion";
 
 export const WorkArea = (props) => {
   const [bookWidth, setbookWidth] = useState(localStorage.getItem("w"));
@@ -22,9 +23,9 @@ export const WorkArea = (props) => {
   }, [refresh]);
 
   return (
-    <div className=" relative w-full rounded flex flex-col  ">
+    <div className=" relative col-span-6   rounded flex flex-col  ">
       <div className="titlebar">
-        <p className=" pt-20 px-14  text-slate-900 dark:text-gray-300 text-6xl">
+        <p className=" pt-20 px-14    text-slate-900 dark:text-gray-300 text-6xl">
           Library
         </p>
       </div>
@@ -34,7 +35,7 @@ export const WorkArea = (props) => {
         changeBookWidth={setbookWidth}
       />
 
-      <div className=" w-full flex flex-wrap p-10 overflow-y-scroll ">
+      <div className=" overflow-y-scroll flex justify-evenly flex-wrap p-10 ">
         {Books?.map((i) => {
           return (
             <Book

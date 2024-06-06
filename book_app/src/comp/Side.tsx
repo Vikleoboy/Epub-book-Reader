@@ -15,7 +15,7 @@ export const Side = (props) => {
   };
 
   return (
-    <div className=" p-7 bg-gray-100 border border-gray-800 dark:bg-gray-900 xl:w-[15%] w-[25%]  rounded-md">
+    <div className=" col-span-1  p-7 bg-gray-100 border border-gray-800 dark:bg-gray-900 w-full rounded-md">
       <div className=" flex flex-col space-y-10 ">
         <div className=" relative flex ml-2">
           <div onClick={quit} className="mac-button mac-quit"></div>
