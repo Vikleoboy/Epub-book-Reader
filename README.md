@@ -26,6 +26,11 @@ Welcome to the EPUB Book Reader App! This app is designed to enhance your readin
 
 ## 🔧 Installation
 
+
+#### Requirement
+1 . Python 3 
+2 . Node Js
+
 To get started with the EPUB Book Reader App, follow these steps:
 
 1. Clone the repository:
@@ -34,19 +39,23 @@ To get started with the EPUB Book Reader App, follow these steps:
    ```
 2. Navigate to the project directory:
    ```bash
-   cd epub-book-reader
+   cd Epub-book-Reader
    ```
 3. Install the required dependencies:
 
    ```bash
    npm install
    ```
+5. Start the backend:
+   ```bash
+   npm run dev
+   ```
 
-4. Install the required dependencies:
+4. Chnage direcotry to frontEnd Dir:
    ```bash
    cd book_app
    ```
-5. Start the application:
+5. Start the FrontEnd application:
    ```bash
    npm run dev
    ```
