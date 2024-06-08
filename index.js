@@ -24,6 +24,19 @@ let mainDes = __dirname + "\\books";
 //   allowedHeaders: "Content-Type,Authorization", // Allow these headers
 // };
 
+Router.use(cors());
+Router.use(express.json());
+
+Router.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
+port = 3002;
+
 let t = async () => {
   let y = await fs.existsSync("./Database");
   if (!y) {
@@ -40,19 +53,6 @@ let t = async () => {
 
 t();
 
-Router.use(cors());
-Router.use(express.json());
-
-Router.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
-port = 3002;
-
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
@@ -60,6 +60,205 @@ Router.get("/quit", async (req, res) => {
   res.send("cool");
   console.log("its working");
   app.quit();
+});
+
+Router.get("/getTags", async (req, res) => {
+  const { tagName } = req.query;
+  // acessing the databse
+
+  console.log("Came in Tags ");
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+
+  let d = await fs.readFileSync(dataPath);
+  let dSub = await fs.readFileSync(dataPathSub);
+  let Data = JSON.parse(d);
+  let DataSub = JSON.parse(dSub);
+
+  //checking if Books and other perameters are there in the databse if not adding them
+
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    Data["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    DataSub["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    Data["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    DataSub["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if has Books property
+  if (!Data.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    Data["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    DataSub["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  res.json({ Tags: DataSub["Tags"] });
+});
+
+Router.get("/addTag", async (req, res) => {
+  const { tagName } = req.query;
+  // acessing the databse
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+
+  let d = await fs.readFileSync(dataPath);
+  let dSub = await fs.readFileSync(dataPathSub);
+  let Data = JSON.parse(d);
+  let DataSub = JSON.parse(dSub);
+
+  //checking if Books and other perameters are there in the databse if not adding them
+
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    Data["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    DataSub["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    Data["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    DataSub["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if has Books property
+  if (!Data.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    Data["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    DataSub["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  console.log(DataSub["Tags"], DataSub["Tags"].indexOf(tagName));
+  if (DataSub["Tags"].indexOf(tagName) < 0 && tagName !== undefined) {
+    let dataTag = Data["Tags"];
+    let dataSubTag = DataSub["Tags"];
+    dataTag.push(tagName);
+    dataSubTag.push(tagName);
+
+    Data["Tags"] = dataTag;
+    DataSub["Tags"] = dataSubTag;
+    await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+    await fs.writeFileSync(dataPath, JSON.stringify(Data));
+    res.json({ res: "Done" });
+  } else {
+    console.log("ALREDY EXISTS TAG");
+    res.json({ res: "NVP" });
+  }
+});
+
+Router.get("/delTag", async (req, res) => {
+  const { tagName } = req.query;
+  // acessing the databse
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+
+  let d = await fs.readFileSync(dataPath);
+  let dSub = await fs.readFileSync(dataPathSub);
+  let Data = JSON.parse(d);
+  let DataSub = JSON.parse(dSub);
+
+  //checking if Books and other perameters are there in the databse if not adding them
+
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    Data["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    DataSub["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    Data["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    DataSub["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if has Books property
+  if (!Data.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    Data["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    DataSub["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  let index = DataSub["Tags"].indexOf(tagName);
+
+  Data["Tags"].splice(index, 1);
+  DataSub["Tags"].splice(index, 1);
+  await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+  await fs.writeFileSync(dataPath, JSON.stringify(Data));
+
+  console.log(DataSub["Tags"]);
+  res.json({ res: "Done" });
 });
 
 Router.post("/addBook", async (req, res) => {
@@ -76,16 +275,18 @@ Router.post("/addBook", async (req, res) => {
   let Data = JSON.parse(d);
   let DataSub = JSON.parse(dSub);
 
-  //checking if Books is there  in the databse
-  if (!Data.hasOwnProperty("Books")) {
+  //checking if Books and other perameters are there in the databse if not adding them
+
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Tags")) {
     console.log("Here in the if ");
-    Data["Books"] = [];
+    Data["Tags"] = [];
   } else {
     console.log("not comeign in here ");
   }
-  if (!DataSub.hasOwnProperty("Books")) {
+  if (!DataSub.hasOwnProperty("Tags")) {
     console.log("Here in the if ");
-    DataSub["Books"] = [];
+    DataSub["Tags"] = [];
   } else {
     console.log("not comeign in here ");
   }
@@ -99,7 +300,21 @@ Router.post("/addBook", async (req, res) => {
   }
   if (!DataSub.hasOwnProperty("Base")) {
     console.log("Here in the if ");
-    Data["Base"] = mainDes.replace(/\\/g, "/");
+    DataSub["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if has Books property
+  if (!Data.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    Data["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    DataSub["Books"] = [];
   } else {
     console.log("not comeign in here ");
   }
@@ -355,6 +570,37 @@ Router.get("/allBooks", async (req, res) => {
   let dSub = await fs.readFileSync(dataPathSub);
   let Data = JSON.parse(d);
   let DataSub = JSON.parse(dSub);
+
+  // Adding the Books and other properties if its alredy not there in the files
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    Data["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    DataSub["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    Data["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    DataSub["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if has Books property
   if (!Data.hasOwnProperty("Books")) {
     console.log("Here in the if ");
     Data["Books"] = [];
@@ -364,19 +610,6 @@ Router.get("/allBooks", async (req, res) => {
   if (!DataSub.hasOwnProperty("Books")) {
     console.log("Here in the if ");
     DataSub["Books"] = [];
-  } else {
-    console.log("not comeign in here ");
-  }
-
-  if (!Data.hasOwnProperty("Base")) {
-    console.log("Here in the if ");
-    Data["Base"] = des.replace(/\\/g, "/");
-  } else {
-    console.log("not comeign in here ");
-  }
-  if (!DataSub.hasOwnProperty("Base")) {
-    console.log("Here in the if ");
-    DataSub["Base"] = des.replace(/\\/g, "/");
   } else {
     console.log("not comeign in here ");
   }

@@ -13,11 +13,11 @@ import { BsBook } from "react-icons/bs";
 export const MainSection = (props) => {
   return (
     <div className="   p-1">
-      <p className=" text-2xl  text-gray-600 dark:text-gray-300  ">
-        Apple Books
+      <p className=" text-xl  text-gray-600 dark:text-gray-300  ">
+        Axiom Books
       </p>
 
-      <div>
+      <div className=" pl-2">
         {props.allBtns.map((btn) => {
           return (
             <div
@@ -28,7 +28,7 @@ export const MainSection = (props) => {
               <p className=" text-blue-500 ">
                 <BsBook />
               </p>
-              <p>{btn}</p>
+              <p className=" text-lg">{btn}</p>
             </div>
           );
         })}

@@ -7,9 +7,11 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import logo from "../assets/book-covers-big-2019101610.jpg";
 import { RiDeleteBinLine } from "react-icons/ri";
+
 export const Book = (props) => {
   let baseUrl = "http://localhost:3002/";
   const [cover, setCover] = useState();
+  const [menu, setmenu] = useState(false);
   useEffect(() => {
     let m = async () => {
       let bk = await axios.get(baseUrl + "getCover?id=" + props.bok?.Name);
@@ -39,6 +41,10 @@ export const Book = (props) => {
       tabIndex={0}
       className=" rounded-2xl  flex flex-col    m-1 my-2  "
     >
+      {/* <div onClick={() => setmenu(true)} className=" flex justify-end">
+        <Bs.BsThreeDots />
+        <div className=" absolute bg-slate-400 p-10">Something</div>
+      </div> */}
       <div className=" relative  flex justify-end text-gray-500 ">
         <div tabIndex={1} className="z-20 relative threeDots">
           <Bs.BsThreeDots />
@@ -67,7 +73,7 @@ export const Book = (props) => {
                 <motion.p
                   initial={{ x: 100, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
-                  transition={{ duration: 1 }}
+                  transition={{ ease: "easeIn", duration: 1 }}
                 >
                   Somthing
                 </motion.p>
