@@ -25,8 +25,9 @@ export const Side = (props) => {
 
         <Search />
 
-        <MainSection allBtns={allBtns} />
+        <MainSection setTagString={props.setTagString} allBtns={allBtns} />
         <Folders
+          setTagString={props.setTagString}
           setFresh={props.setFresh}
           allBtns={allBtns}
           AddModle={AddModle}

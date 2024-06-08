@@ -7,20 +7,27 @@ import { motion } from "framer-motion";
 
 export const WorkArea = (props) => {
   const [bookWidth, setbookWidth] = useState(localStorage.getItem("w"));
-  const [Books, setBooks] = useState();
+  const [Books, setBooks] = useState([]);
+
   const [refresh, setrefresh] = useState(false);
   let baseUrl = "http://localhost:3002/";
 
   useEffect(() => {
     const func = async () => {
-      let book = await axios.get(baseUrl + "home");
+      if (props.TagString !== "") {
+        console.log("comeing in here for no reason ");
+        var book = await axios.get(baseUrl + `home?Tag=${props.TagString}`);
+      } else {
+        console.log("here");
+        var book = await axios.get(baseUrl + "home");
+      }
 
       console.log(book.data);
 
       setBooks(book.data.info);
     };
     func();
-  }, [refresh]);
+  }, [refresh, props.TagString]);
 
   return (
     <div className=" relative col-span-6   rounded flex flex-col  ">
@@ -35,13 +42,13 @@ export const WorkArea = (props) => {
         changeBookWidth={setbookWidth}
       />
 
-      <div className=" overflow-y-scroll flex justify-evenly flex-wrap p-10 ">
+      <div className=" h-full overflow-y-scroll overflow-x-hidden flex justify-evenly flex-wrap p-10 ">
         {Books?.map((i) => {
           return (
             <Book
-              key={i["id"]}
+              key={i["Name"]}
               bok={i}
-              id={i["id"]}
+              id={i["Name"]}
               fresh={setrefresh}
               val={bookWidth}
             />

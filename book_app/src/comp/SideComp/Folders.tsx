@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { RiDeleteBinLine } from "react-icons/ri";
+import { IoFolderOutline } from "react-icons/io5";
+import { FaFolderPlus } from "react-icons/fa6";
 
 export const Folders = (props) => {
   let baseUrl = "http://localhost:3002/";
@@ -33,12 +35,22 @@ export const Folders = (props) => {
       <div className="p-1">
         <div className="  flex justify-between items-center text-xl  text-gray-600 dark:text-gray-300  ">
           <p>Folders</p>
-          <div
+          <motion.div
+            initial={{ scale: 1 }}
+            animate={{ scale: 1 }}
+            whileHover={{ scale: 1.5 }}
+            transition={{ type: "spring", duration: 0.5 }}
             onClick={handleAddFolder}
-            className="border-2 border-gray-500 rounded-lg text-gray-300 "
+            className=" text-xl rounded-lg text-gray-300 "
           >
-            <IoMdAdd className="   w-4 h-4 text-gray-300" />
-          </div>
+            <FaFolderPlus className=" w-4 h-4 " />
+            {/* <button
+              type="button"
+              className="focus:outline-none w-full text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-3  py-1.5 mr-2 mb-2 dark:bg-blue-600/80 dark:hover:bg-blue-700/80 dark:focus:ring-blue-900"
+            >
+              Add
+            </button> */}
+          </motion.div>
         </div>
 
         <div className=" flex flex-col ">
@@ -46,13 +58,17 @@ export const Folders = (props) => {
             allBtns.map((btn) => {
               return (
                 <div
+                  onClick={() => {
+                    console.log("we are here ");
+                    props.setTagString(btn);
+                  }}
                   key={btn}
                   tabIndex={0}
                   className="px-3 rounded-lg flex justify-between  hover:bg-gray-200 dark:hover:bg-gray-800 dark:focus:bg-gray-800 focus:bg-gray-200 py-1 flex space-x-2  text-xl text-gray-500 dark:text-gray-400 items-center"
                 >
                   <div className=" flex items-center space-x-2 ">
                     <p className=" text-blue-500 ">
-                      <BsBook />
+                      <IoFolderOutline />
                     </p>
                     <div className=" flex items-center">
                       <p className=" text-lg overflow-x-hidden whitespace-nowrap  ">

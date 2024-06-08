@@ -110,6 +110,7 @@ export const Book = (props) => {
                   {Tags.map((tag) => {
                     return (
                       <motion.p
+                        key={tag}
                         onClick={() => addBookTag(tag)}
                         initial={{ x: 100, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
@@ -133,6 +134,7 @@ export const Book = (props) => {
                   {bookTags.map((tag) => {
                     return (
                       <TagComp
+                        key={tag}
                         fresh={setrefreshTag}
                         Name={props.bok["Name"]}
                         Tag={tag}
