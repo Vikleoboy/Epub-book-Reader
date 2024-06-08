@@ -54,7 +54,11 @@ export const Folders = (props) => {
                     <p className=" text-blue-500 ">
                       <BsBook />
                     </p>
-                    <p className=" text-lg">{btn}</p>
+                    <div className=" flex items-center">
+                      <p className=" text-lg overflow-x-hidden whitespace-nowrap  ">
+                        {btn}
+                      </p>
+                    </div>
                   </div>
                   <SureDel fresh={setrefreshTag} Tag={btn} />
                 </div>

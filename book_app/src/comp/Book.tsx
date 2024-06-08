@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { animate, motion } from "framer-motion";
 import * as Bs from "react-icons/bs";
 import * as Ai from "react-icons/ai";
 import * as Gr from "react-icons/gr";
@@ -7,14 +7,24 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import logo from "../assets/book-covers-big-2019101610.jpg";
 import { RiDeleteBinLine } from "react-icons/ri";
+import { MdCancel } from "react-icons/md";
 
 export const Book = (props) => {
   let baseUrl = "http://localhost:3002/";
   const [cover, setCover] = useState();
-  const [menu, setmenu] = useState(false);
+  const [refreshTags, setrefreshTag] = useState(false);
+  const [Tags, setTags] = useState([]);
+  const [bookTags, setbookTags] = useState([]);
   useEffect(() => {
     let m = async () => {
       let bk = await axios.get(baseUrl + "getCover?id=" + props.bok?.Name);
+
+      let T = await axios.get(baseUrl + "getTags");
+      let TB = await axios.get(
+        baseUrl + `getBookTags?tagName=${props.bok?.Name}`
+      );
+      setTags(T.data.Tags);
+      setbookTags(TB.data.Tags);
 
       // const img = new Blob([bk.data]);
       // const url = URL.createObjectURL(img);
@@ -22,7 +32,7 @@ export const Book = (props) => {
       setCover(bk.data.img);
     };
     m();
-  }, []);
+  }, [refreshTags]);
 
   let openBook = () => {
     window.open("/read/" + props.bok.Name, "_blank");
@@ -33,6 +43,23 @@ export const Book = (props) => {
     props.fresh((d) => !d);
   };
 
+  function addBookTag(ta) {
+    let baseUrl = "http://localhost:3002/";
+    let t = async () => {
+      let d = await axios.post(
+        baseUrl + "addBookTag",
+        { Name: props.bok["Name"], Tag: ta },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    };
+
+    t();
+    setrefreshTag((m) => !m);
+  }
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -49,14 +76,17 @@ export const Book = (props) => {
         <div tabIndex={1} className="z-20 relative threeDots">
           <Bs.BsThreeDots />
           <motion.div className=" relative  b">
-            <div className=" bg-gray-100 dark:text-gray-400 dark:bg-gray-800  border dark:border-gray-500 border-gray-300 shadow-lg dark:shadow-slate-500   rounded-lg  overflow-hidden  threeContent z-30 flex flex-col p-2">
+            <div className=" space-y-2 items-start bg-gray-100 dark:text-gray-400 dark:bg-gray-800  border dark:border-gray-500 border-gray-300 shadow-lg dark:shadow-slate-500   rounded-lg  overflow-hidden  threeContent z-30 flex flex-col p-2">
               <div className=" flex  px-1 justify-between">
-                <div
+                <motion.div
+                  animate={{ scale: 1 }}
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ type: "spring", duration: 0.2 }}
                   tabIndex={2}
                   className=" text-xl hover:text-2xl text-gray-400  "
                 >
                   <Ai.AiFillHeart />
-                </div>
+                </motion.div>
                 <motion.div
                   animate={{ rotate: 0 }}
                   whileHover={{ rotate: [10, -10, 0], scale: 1.1 }}
@@ -70,13 +100,46 @@ export const Book = (props) => {
                 </motion.div>
               </div>
               <motion.div>
-                <motion.p
-                  initial={{ x: 100, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ ease: "easeIn", duration: 1 }}
-                >
-                  Somthing
-                </motion.p>
+                <motion.div className=" flex flex-col space-x-2">
+                  <div className=" flex flex-col items-center">
+                    <motion.p className="  text-gray-500 whitespace-nowrap  ">
+                      Add to Collection
+                    </motion.p>
+                    <div className=" mx-3 w-full bg-gray-100 opacity-20 border border-gray-500" />
+                  </div>
+                  {Tags.map((tag) => {
+                    return (
+                      <motion.p
+                        onClick={() => addBookTag(tag)}
+                        initial={{ x: 100, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ ease: "easeIn", duration: 0.1 }}
+                        className=" hover:bg-gray-700 px-2 py-1 rounded-lg"
+                      >
+                        {tag}
+                      </motion.p>
+                    );
+                  })}
+                </motion.div>
+
+                <div className=" flex flex-col  w-full mb-1">
+                  <motion.p className="  text-gray-500 whitespace-nowrap  ">
+                    Tags
+                  </motion.p>
+                  <div className=" mx-3  bg-gray-100 opacity-20 border border-gray-500" />
+                </div>
+                <motion.div className="  whitespace-nowrap bg-gray-700 flex  flex-wrap rounded-xl p-2 space-y-1 ">
+                  {bookTags.map((tag) => {
+                    return (
+                      <TagComp
+                        fresh={setrefreshTag}
+                        Name={props.bok["Name"]}
+                        Tag={tag}
+                      />
+                    );
+                  })}
+                </motion.div>
               </motion.div>
             </div>
           </motion.div>
@@ -112,5 +175,49 @@ export const Book = (props) => {
         </div>
       </div>
     </motion.div>
+  );
+};
+
+export const TagComp = (props) => {
+  let baseUrl = "http://localhost:3002/";
+
+  function cross() {
+    let t = async () => {
+      let d = await axios.post(
+        baseUrl + "delBookTag",
+        { Name: props.Name, Tag: props.Tag },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      props.fresh((m) => !m);
+    };
+
+    t();
+  }
+
+  return (
+    <div>
+      <motion.div className=" justify-between flex bg-green-600 rounded-lg items-center px-1 space-x-1 ">
+        <motion.p
+          initial={{ x: 100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ ease: "easeIn", duration: 1 }}
+          className="  text-sm text-gray-300   "
+        >
+          {props.Tag}
+        </motion.p>
+        <motion.div
+          onClick={cross}
+          initial={{ scale: 1 }}
+          whileHover={{ scale: 1.2 }}
+          className=" text-white"
+        >
+          <MdCancel />
+        </motion.div>
+      </motion.div>
+    </div>
   );
 };

@@ -396,6 +396,107 @@ Router.post("/addBook", async (req, res) => {
   }
 });
 
+Router.post("/delBookTag", async (req, res) => {
+  let Name = req.body["Name"];
+  let Tag = req.body["Tag"];
+
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+  let dSub = await fs.readFileSync(dataPathSub);
+  let d = await fs.readFileSync(dataPath);
+
+  let DataSub = JSON.parse(dSub);
+  let Data = JSON.parse(d);
+  let Books = DataSub["Books"];
+  if (Books != []) {
+    for (let i of Books) {
+      if (Name === i["Name"] && i !== undefined) {
+        if (!i.hasOwnProperty("Tags")) {
+          i["Tags"] = [];
+          let ind = Data["Books"].indexOf(i);
+
+          Data["Books"][ind]["Tags"] = [];
+        }
+        if (i["Tags"].indexOf(Tag) >= 0 && Tag !== undefined) {
+          let index = i["Tags"].indexOf(Tag);
+          let ind = DataSub["Books"].indexOf(i);
+          i["Tags"].splice(index, 1);
+          Data["Books"][ind]["Tags"].splice(index, 1);
+          await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+          await fs.writeFileSync(dataPath, JSON.stringify(Data));
+          res.json({ res: "Done" });
+        }
+      }
+    }
+  }
+  res.json({ res: "NotFound" });
+});
+
+Router.post("/addBookTag", async (req, res) => {
+  let Name = req.body["Name"];
+  let Tag = req.body["Tag"];
+  let ifsend = true;
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+  let dSub = await fs.readFileSync(dataPathSub);
+  let d = await fs.readFileSync(dataPath);
+
+  let DataSub = JSON.parse(dSub);
+  let Data = JSON.parse(d);
+  let Books = DataSub["Books"];
+  if (Books != []) {
+    for (let i of Books) {
+      if (Name === i["Name"] && i !== undefined) {
+        if (!i.hasOwnProperty("Tags")) {
+          i["Tags"] = [];
+          let ind = DataSub["Books"].indexOf(i);
+          Data["Books"][ind]["Tags"] = [];
+        }
+        if (i["Tags"].indexOf(Tag) < 0 && Tag !== undefined) {
+          let index = i["Tags"].indexOf(Tag);
+          let ind = DataSub["Books"].indexOf(i);
+          i["Tags"].push(Tag);
+          Data["Books"][ind]["Tags"].push(Tag);
+          await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+          await fs.writeFileSync(dataPath, JSON.stringify(Data));
+          ifsend = false;
+        }
+      }
+    }
+  }
+
+  if (ifsend) {
+    res.json({ res: "NotFound" });
+  }
+});
+
+Router.get("/getBookTags", async (req, res) => {
+  const { tagName: Name } = req.query;
+  let ifsend = true;
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
+  let dSub = await fs.readFileSync(dataPathSub);
+  let d = await fs.readFileSync(dataPath);
+
+  let DataSub = JSON.parse(dSub);
+  let Data = JSON.parse(d);
+  let Books = DataSub["Books"];
+  if (Books != []) {
+    for (let i of Books) {
+      if (Name === i["Name"] && i !== undefined) {
+        if (!i.hasOwnProperty("Tags")) {
+          i["Tags"] = [];
+        }
+        ifsend = false;
+        res.json({ Tags: i["Tags"] });
+      }
+    }
+  }
+  if (ifsend) {
+    res.json({ res: "NotFound" });
+  }
+});
+
 Router.get("/getCover", async (req, res) => {
   const { id } = req.query;
   let dataPath = "./Database/Main.json";
