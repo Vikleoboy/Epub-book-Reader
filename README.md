@@ -90,11 +90,11 @@ We welcome contributions! If you'd like to help improve the app, please fork the
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-Join our [Discord server](https://discord.gg/your-invite-code) to collaborate and discuss ideas with the community.
+Join our [Discord server](https://discord.gg/TqfCds3tRg) to collaborate and discuss ideas with the community.
 
 ## 📧 Contact
 
-If you have any questions or suggestions, feel free to contact us at support@epubreader.com.
+If you have any questions or suggestions, feel free to contact us at vikleoboy@gmail.com.
 
 Enjoy your reading! 📖✨
 
