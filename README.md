@@ -37,7 +37,7 @@ To get started with the EPUB Book Reader App, follow these steps:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/epub-book-reader.git
+   git clone https://github.com/Vikleoboy/Epub-book-Reader.git
    ```
 2. Navigate to the project directory:
    ```bash
