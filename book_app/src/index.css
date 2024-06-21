@@ -19,7 +19,7 @@ body {
   margin: 0;
   padding: 0;
   min-width: 100vw;
-  
+background-color: white !important;
   max-height: 100vh;
   /* overflow-x: hidden; */
   

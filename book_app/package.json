@@ -12,6 +12,7 @@
   "dependencies": {
     "@ionic/react": "^7.2.2",
     "axios": "^1.4.0",
+    "epubjs": "^0.3.93",
     "framer-motion": "^10.12.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
