@@ -10,7 +10,7 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<MainPage />} />
-        <Route path="/read" element={<EpubReader url={'http://localhost:3002/carl.epub'} />} />
+        <Route path="/read/:id" element={<ReadBook  />} />
       </Routes>
     </>
   );

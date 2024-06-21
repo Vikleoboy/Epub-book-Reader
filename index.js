@@ -10,7 +10,7 @@ const Router = express();
 
 const cheerio = require("cheerio");
 const { uid } = require("uid");
-const Book = require("epubapi");
+const Book = require("./book.js");
 const unzipper = require("unzipper");
 //add new comment
 let cors = require("cors");
@@ -582,9 +582,11 @@ Router.get("/home", async (req, res) => {
 
 let des = mainDes;
 Router.use(express.static(des));
+Router.use(express.static('E:\\books'));
 
-Router.get("/Read/:id/:ind", async (req, res) => {
-  const { id, ind } = req.params;
+
+Router.get("/Read", async (req, res) => {
+  const { id } = req.query;
   console.log(id + " this is id of read ");
 
   let dataPath = "./Database/Main.json";
@@ -597,26 +599,14 @@ Router.get("/Read/:id/:ind", async (req, res) => {
   let Data = JSON.parse(d);
   if (DataSub["Books"].length !== 0) {
     for (let i of DataSub["Books"]) {
+      
       if (i["Name"] === id) {
-        let index = DataSub["Books"].indexOf(i);
-        let les = Data["Books"][index]["Chapters"][ind];
-        let chap = await fs.readFileSync(les.link.split("#")[0]);
-
-        let $ = cheerio.load(chap);
-
-        let head = $("head");
-        let link =
-          "http://localhost:3002/" + les.link.replace(DataSub["Base"], "");
-        console.log(link);
-        head.prepend(`<base href= "${link}"  />`);
-        // console.log(head.html());
-        // console.log(les.link.split("#")[0]);
+        console.log(i['FolderName'])
+        
         res.json(
-          JSON.stringify({
-            ch: $.html(),
-            link: "something",
-            base: "somthing",
-          })
+          {
+            url : `http://localhost:3002/${i['FolderName']}.epub`
+          }
         );
       }
     }
@@ -689,7 +679,7 @@ Router.get("/addFolder/", async (req, res) => {
 });
 
 Router.get("/allBooks", async (req, res) => {
-  const { path } = req.query;
+  const { path: pathToDes } = req.query;
 
   console.log("I HAV ENO I DEA WHATS HAPPENING ");
 
@@ -758,13 +748,17 @@ Router.get("/allBooks", async (req, res) => {
     await book.getCover(i);
     await book.bookData(i);
     // console.log(book.Cover, book.Chapters);
+
+    
     let tempTwo = {
       Name: book.Name,
       Cover: book.Cover,
+      FolderName : i.replace('.epub', '')
     };
     let temp = {
       Name: book.Name,
       Cover: book.Cover,
+      FolderName :  i.replace('.epub', ''),
       Chapters: book.Chapters,
     };
     let dont = true;
@@ -784,7 +778,7 @@ Router.get("/allBooks", async (req, res) => {
   Data["Books"] = bk;
   await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
   await fs.writeFileSync(dataPath, JSON.stringify(Data));
-  res.send(path);
+  res.send(pathToDes);
 });
 
 Router.listen(port, () => {

@@ -3,36 +3,30 @@ import React from "react";
 import "./css/readBook.scss";
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
+import EpubViewer from "../EpubViewer.tsx";
 // import { WebView } from "react-webview";
 // import "C:/Users/Vikleo/Desktop/books/Eric-Jorgenson_The-Almanack-of-Naval-Ravikant_EBOOK_v103/OEBPS/css/style.css";
 
 export const ReadBook = () => {
   const { id } = useParams();
   const [index, setindex] = useState(7);
-  const [data, setdata] = useState(null);
+  const [url, seturl] = useState(null);
   useEffect(() => {
-    let url = "http://localhost:3002/";
+    let base = "http://localhost:3002/";
     let m = async () => {
-      let d = await axios.get(url + "Read/" + id + "/" + index);
-      let dd = JSON.parse(d.data);
+      let d = await axios.get(base + "Read?id=" + id );
 
-      setdata(dd.ch);
+      seturl(d.data.url);
     };
 
     m();
   }, [index]);
 
+ if(url !== null){
   return (
-    <div>
-      <p className=" text-3xl text-center w-[100vw] bg-slate-300 text-black ">
-        {id}
-      </p>
-
-      <div className=" w-[100vw] ">
-        <HtmlViewer src={data} />
-      </div>
-    </div>
+    <EpubViewer url={url} />
   );
+ }
 };
 
 const HtmlViewer = ({ src, styles }) => {
