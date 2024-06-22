@@ -24,7 +24,7 @@ export const ReadBook = () => {
 
  if(url !== null){
   return (
-    <EpubViewer url={url} />
+    <EpubViewer  url={url} />
   );
  }
 };

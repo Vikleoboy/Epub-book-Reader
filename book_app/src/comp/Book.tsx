@@ -35,7 +35,7 @@ export const Book = (props) => {
   }, [refreshTags]);
 
   let openBook = () => {
-    window.open("/read/" + props.bok.Name , "_blank");
+    window.open("/read/" + props.bok.Name , "_blank", "top=200,left=200,width=1000,frame=false,nodeIntegration=no");
   };
 
   let DelBook = async () => {

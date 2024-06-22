@@ -1,17 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import ePub from "epubjs";
 import { useParams } from "react-router-dom";
-import axios from "axios";
-import { IoIosArrowForward } from "react-icons/io";
-import { IoIosArrowBack } from "react-icons/io";
+import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
+import { motion } from "framer-motion";
+import { HiOutlineBookmarkSquare } from "react-icons/hi2";
+import { IoBookmarksOutline } from "react-icons/io5";
 
-
-
-const EpubViewer = ({url}) => {
+const EpubViewer = ({ url }) => {
   const viewerRef = useRef(null);
   const renditionRef = useRef(null);
   const [book, setBook] = useState(null);
-  // const [url, seturl] = useState('')
+  const [loading, setLoading] = useState(true);
+  const [title, setTitle] = useState("");
+  const [chapsOn, setChapsOn] = useState(false);
   const [location, setLocation] = useState(null);
   const [pageNumber, setPageNumber] = useState("Calculating...");
   const [totalPages, setTotalPages] = useState("Calculating...");
@@ -21,15 +22,9 @@ const EpubViewer = ({url}) => {
 
   const { id } = useParams();
   console.log(id);
-  
 
   useEffect(() => {
     const initializeBook = async () => {
-      // console.log('now here')
-      // let k = await axios.get(`http://localhost:3002/Read?id=${id}`)
-      // let url = k.data.url
-        
-      // seturl(url)
       const book = ePub(url);
       setBook(book);
       const rendition = book.renderTo(viewerRef.current, {
@@ -38,6 +33,14 @@ const EpubViewer = ({url}) => {
         allowScriptedContent: true,
       });
       renditionRef.current = rendition;
+
+      renditionRef.current.on("rendered", () => {
+        setLoading(false);
+      });
+
+      book.loaded.metadata.then((metadata) => {
+        setTitle(metadata.title);
+      });
 
       rendition.on("relocated", (location) => {
         setLocation(location);
@@ -55,24 +58,39 @@ const EpubViewer = ({url}) => {
 
       try {
         await book.ready;
+
         const navigation = await book.loaded.navigation;
         console.log(navigation);
-        setToc(navigation.toc); // Ensure TOC is correctly set
+        setToc(navigation.toc);
         await book.locations.generate(1600);
         setTotalPages(book.locations.length());
         rendition.display();
-        rendition.injectStylesheet(` body {
-          background-colour : black ; 
-        
-          }`);
+        rendition.injectStylesheet(`body { background-color: black; }`);
       } catch (error) {
         console.error("Error generating locations:", error);
       }
     };
 
     initializeBook();
+    setLoading(false);
+
+    const handleKeyDown = (event) => {
+      switch (event.key) {
+        case "ArrowLeft":
+          goPrev();
+          break;
+        case "ArrowRight":
+          goNext();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      window.removeEventListener("keydown", handleKeyDown);
       if (renditionRef.current) {
         renditionRef.current.destroy();
       }
@@ -99,16 +117,10 @@ const EpubViewer = ({url}) => {
   };
 
   const goToLocation = (location) => {
-    console.log(
-      "came in location ",
-      location.split(".xhtml")[0],
-      renditionRef.current
-    );
     if (renditionRef.current) {
       let base = renditionRef.current.location.start.href.split("/");
       base.pop();
       base = base.join("/");
-
       renditionRef.current.display(base + "/" + location);
     }
   };
@@ -121,8 +133,6 @@ const EpubViewer = ({url}) => {
 
   const goToBookmark = (cfi) => {
     if (renditionRef.current) {
-      
-
       renditionRef.current.display(cfi);
     }
   };
@@ -135,90 +145,102 @@ const EpubViewer = ({url}) => {
   };
 
   return (
-    <div className="flex flex-col items-center p-4">
-      <div ref={viewerRef} className="w-full h-[100vh] bg-gray-100"></div>
-      <div className=" absolute flex justify-between w-full px-10 top-1/2 space-x-4 mt-4">
-        <button
-          onClick={goPrev}
-          className="text-4xl text-gray-600 rounded"
+    <>
+      <div className="w-full h-full relative overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0, y: 0 }}
+          whileHover={{ opacity: 1, y: 0 }}
+          transition={{ ease: "easeIn", duration: 1, type: "spring" }}
+          className="bg-gray-200 shadow-md z-20 h-12 flex justify-center items-center text-black w-full text-md absolute top-0"
         >
-          <IoIosArrowBack/>
-        </button>
-        <button
-          onClick={goNext}
-          className=" text-4xl text-gray-600 rounded"
-        >
-          <IoIosArrowForward />
-        </button>
-        
-      </div>
-
-      <button
-          onClick={() => goToLocation("epubcfi(/6/2[cover]!/6)")}
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Go to Cover
-        </button>
-        <button
-          onClick={addBookmark}
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Add Bookmark
-        </button>
-      <div className="mt-4 text-black">
-        Current Location: {location ? location.start.cfi : "Unknown"}
-      </div>
-      <div className="text-black">
-        Page Number: {pageNumber} / {totalPages}
-      </div>
-      <div className="mt-4 text-black">
-        <h3>Table of Contents:</h3>
-        <ul>
-          {Array.isArray(toc) &&
-            toc.map((chapter, index) => (
-              <li key={index}>
-                <button
-                  onClick={() => goToLocation(chapter.href)}
-                  className="text-blue-500 underline"
+          <div>
+            <p className="text-lg titlebar">{title}</p>
+          </div>
+          <div className="absolute w-full justify-end flex items-center right-4 space-x-2">
+            <div className="relative">
+              <button
+                onClick={() => setChapsOn(!chapsOn)}
+                className="bg-gray-200 text-blue-600 text-xl px-3 py-1 rounded-md shadow "
+              >
+                <HiOutlineBookmarkSquare />
+              </button>
+              {chapsOn && (
+                <motion.div
+                  className="absolute top-0 right-0 mt-12 w-64 h-96 overflow-y-auto z-30 bg-gray-200 p-4 rounded-xl"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  {chapter.label}
-                </button>
-              </li>
-            ))}
-        </ul>
-      </div>
-      <div className="mt-4 text-black">
-        <h3>Bookmarks:</h3>
-        <ul>
-          {bookmarks.map((cfi, index) => (
-            <li key={index}>
-              <button
-                onClick={() => goToBookmark(cfi)}
-                className="text-blue-500 underline"
-              >
-                {cfi}
+                  <div className="mt-4 text-black">
+                    <h3>Table of Contents:</h3>
+                    <div className="flex flex-col">
+                      {toc.map((chapter, index) => (
+                        <div
+                          key={index}
+                          onClick={() => goToLocation(chapter.href)}
+                          className="cursor-pointer p-1 hover:bg-gray-300"
+                        >
+                          {chapter.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            <div className="relative">
+              <button className="bg-gray-200 text-gray-600 px-3 py-1 rounded-md shadow hover:bg-gray-300">
+                {/* &#x22EE; */}
+                <IoBookmarksOutline />
               </button>
-            </li>
-          ))}
-        </ul>
+              {false && (
+                <motion.div
+                  className="absolute top-0 right-0 mt-12 w-64 h-96 overflow-y-auto z-30 bg-gray-200 p-4 rounded-xl"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="mt-4 text-black">
+                    <h3>Table of Contents:</h3>
+                    <div className="flex flex-col">
+                      {toc.map((chapter, index) => (
+                        <div
+                          key={index}
+                          onClick={() => goToLocation(chapter.href)}
+                          className="cursor-pointer p-1 hover:bg-gray-300"
+                        >
+                          {chapter.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="flex w-full h-[100vh] flex-col items-center relative">
+          <div ref={viewerRef} className="w-full h-[100vh] bg-gray-100"></div>
+          {loading && (
+            <div className="z-20 w-full h-full text-black flex justify-center items-center bg-gray-100">
+              Loading ..
+            </div>
+          )}
+
+          <div className="absolute flex justify-between w-full px-[1%] top-1/2 space-x-4 mt-4">
+            <button onClick={goPrev} className="text-4xl text-gray-400 rounded">
+              <IoIosArrowBack />
+            </button>
+            <button onClick={goNext} className="text-4xl text-gray-400 rounded">
+              <IoIosArrowForward />
+            </button>
+          </div>
+        </div>
       </div>
-      <div className="mt-4 text-black">
-        <h3>Highlights:</h3>
-        <ul>
-          {highlights.map((highlight, index) => (
-            <li key={index}>
-              <span>{highlight.text}</span>
-              <button
-                onClick={() => removeHighlight(highlight.cfiRange)}
-                className="ml-2 text-red-500 underline"
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    </>
   );
 };
 
