@@ -7,6 +7,8 @@ import { HiOutlineBookmarkSquare } from "react-icons/hi2";
 import { IoBookmarksOutline } from "react-icons/io5";
 import { PiTextAaBold } from "react-icons/pi";
 import { IoBookmark } from "react-icons/io5";
+import { IoMdAdd } from "react-icons/io";
+
 import { FaBookmark, FaRegFileAlt } from "react-icons/fa";
 
 const EpubViewer = ({ url }) => {
@@ -246,28 +248,63 @@ const EpubViewer = ({ url }) => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Add Bookmarks Button */}
+                  {selectedTab === 1 && (
+                    <div className=" mt-2 flex justify-between items-center">
+                      <p className=" text-xl pl-2">BookMarks</p>
+                      <button
+                        className=" bg-gray-200 text-gray-600 px-2 py-1 rounded-md shadow hover:bg-gray-300 "
+                        onClick={() => alert("Add Bookmarks clicked!")} // Replace with actual functionality
+                      >
+                        <IoMdAdd />
+                      </button>
+                    </div>
+                  )}
+
+                  {selectedTab === 0 && (
+                    <div className=" mt-2 flex justify-between items-center">
+                      <p className=" text-xl pl-2 ">Chapters</p>
+                    </div>
+                  )}
+
+                  {selectedTab === 2 && (
+                    <div className=" mt-2 flex justify-between items-center">
+                      <p className=" text-xl pl-2">HighLights</p>
+                      <button
+                        className=" bg-gray-200 text-gray-600 px-2 py-1 rounded-md shadow hover:bg-gray-300 "
+                        onClick={() => alert("Add Bookmarks clicked!")} // Replace with actual functionality
+                      >
+                        <IoMdAdd />
+                      </button>
+                    </div>
+                  )}
+                  {/* Contant of the Tabs */}
                   <div className="flex-1 mt-2 overflow-y-auto relative rounded-lg">
+                    {/* Render content based on selected tab */}
                     {selectedTab === 0 && (
-                      <div className="flex flex-col h-full overflow-y-auto">
-                        {toc.map((chapter, index) => (
-                          <div
-                            key={index}
-                            onClick={() => goToLocation(chapter.href)}
-                            className="cursor-pointer p-1 hover:bg-gray-300"
-                          >
-                            {chapter.label}
-                          </div>
-                        ))}
+                      <div>
+                        <div className="flex flex-col h-full overflow-y-auto">
+                          {toc.map((chapter, index) => (
+                            <div
+                              key={index}
+                              onClick={() => goToLocation(chapter.href)}
+                              className="cursor-pointer p-1 hover:bg-gray-300"
+                            >
+                              {chapter.label}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                     {selectedTab === 1 && (
-                      <div className="flex flex-col h-full overflow-y-auto">
+                      <div className="flex p-2 flex-col h-full overflow-y-auto">
                         <div>Text Content</div>
                       </div>
                     )}
                     {selectedTab === 2 && (
                       <div className="flex flex-col h-full overflow-y-auto">
-                        <div>Text Content</div>
+                        <div>Notes</div>
                       </div>
                     )}
                   </div>
