@@ -150,8 +150,9 @@ const EpubViewer = ({ url }) => {
   const [selectedTab, setSelectedTab] = useState(0);
 
   const tabs = [
+    { icon: <HiOutlineBookmarkSquare />, label: "Chapters" },
     { icon: <FaBookmark />, label: "Bookmark" },
-    { icon: <FaRegFileAlt />, label: "Text" },
+    { icon: <FaRegFileAlt />, label: "Highlites" },
   ];
 
   return (
@@ -210,16 +211,16 @@ const EpubViewer = ({ url }) => {
               </button>
               {bookmarksOn && (
                 <motion.div
-                  className="absolute top-0 right-0 mt-12 w-64 h-96 bg-gray-100 shadow-lg  z-30 bg-gray-00 p-2 rounded-xl"
+                  className="absolute flex flex-col top-0 right-0 mt-12 w-64 h-96 bg-gray-100 shadow-lg z-30 p-2 rounded-xl"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <div className=" bg-gray-200 px-2 py-1 rounded-lg shadow-sm">
-                    <div className="relative flex justify-around  rounded-lg p-2">
+                  <div className="bg-gray-200 px-2 py-1 rounded-lg shadow-sm">
+                    <div className="relative flex justify-around rounded-lg p-2">
                       <motion.div
-                        className="absolute top-0 left-0 w-1/2 h-full bg-white rounded-lg shadow-md"
+                        className="absolute top-0 left-0 w-1/3 h-full bg-white rounded-lg shadow-md"
                         initial={false}
                         animate={{ x: selectedTab * 100 + "%" }}
                         transition={{
@@ -238,16 +239,16 @@ const EpubViewer = ({ url }) => {
                           }`}
                           onClick={() => setSelectedTab(index)}
                         >
-                          <span className=" flex justify-center items-center ">
+                          <span className="flex justify-center items-center">
                             {tab.icon}
                           </span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div className="mt-6 text-center relative">
+                  <div className="flex-1 mt-2 overflow-y-auto relative rounded-lg">
                     {selectedTab === 0 && (
-                      <div className="flex flex-col overflow-y-scroll">
+                      <div className="flex flex-col h-full overflow-y-auto">
                         {toc.map((chapter, index) => (
                           <div
                             key={index}
@@ -259,7 +260,16 @@ const EpubViewer = ({ url }) => {
                         ))}
                       </div>
                     )}
-                    {selectedTab === 1 && <div>Text Content</div>}
+                    {selectedTab === 1 && (
+                      <div className="flex flex-col h-full overflow-y-auto">
+                        <div>Text Content</div>
+                      </div>
+                    )}
+                    {selectedTab === 2 && (
+                      <div className="flex flex-col h-full overflow-y-auto">
+                        <div>Text Content</div>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
