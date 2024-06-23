@@ -5,6 +5,9 @@ import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { motion } from "framer-motion";
 import { HiOutlineBookmarkSquare } from "react-icons/hi2";
 import { IoBookmarksOutline } from "react-icons/io5";
+import { PiTextAaBold } from "react-icons/pi";
+import { IoBookmark } from "react-icons/io5";
+import { FaBookmark, FaRegFileAlt } from "react-icons/fa";
 
 const EpubViewer = ({ url }) => {
   const viewerRef = useRef(null);
@@ -18,6 +21,7 @@ const EpubViewer = ({ url }) => {
   const [totalPages, setTotalPages] = useState("Calculating...");
   const [bookmarks, setBookmarks] = useState([]);
   const [highlights, setHighlights] = useState([]);
+  const [bookmarksOn, setbookmarksOn] = useState(false);
   const [toc, setToc] = useState([]);
 
   const { id } = useParams();
@@ -58,7 +62,6 @@ const EpubViewer = ({ url }) => {
 
       try {
         await book.ready;
-
         const navigation = await book.loaded.navigation;
         console.log(navigation);
         setToc(navigation.toc);
@@ -144,15 +147,22 @@ const EpubViewer = ({ url }) => {
     renditionRef.current.annotations.remove(cfiRange, "highlight");
   };
 
+  const [selectedTab, setSelectedTab] = useState(0);
+
+  const tabs = [
+    { icon: <FaBookmark />, label: "Bookmark" },
+    { icon: <FaRegFileAlt />, label: "Text" },
+  ];
+
   return (
     <>
-      <div className="w-full h-full relative overflow-hidden">
+      <div className="w-full h-full relative overflow-hidden bg-gray-50">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 0, y: 0 }}
           whileHover={{ opacity: 1, y: 0 }}
           transition={{ ease: "easeIn", duration: 1, type: "spring" }}
-          className="bg-gray-200 shadow-md z-20 h-12 flex justify-center items-center text-black w-full text-md absolute top-0"
+          className="bg-gray-100 shadow-md z-20 h-12 flex justify-center items-center text-black w-full text-md absolute top-0"
         >
           <div>
             <p className="text-lg titlebar">{title}</p>
@@ -191,30 +201,65 @@ const EpubViewer = ({ url }) => {
             </div>
 
             <div className="relative">
-              <button className="bg-gray-200 text-gray-600 px-3 py-1 rounded-md shadow hover:bg-gray-300">
+              <button
+                onClick={() => setbookmarksOn(!bookmarksOn)}
+                className="bg-gray-200 text-gray-600 px-3 py-1 rounded-md shadow hover:bg-gray-300"
+              >
                 {/* &#x22EE; */}
                 <IoBookmarksOutline />
               </button>
-              {false && (
+              {bookmarksOn && (
                 <motion.div
-                  className="absolute top-0 right-0 mt-12 w-64 h-96 overflow-y-auto z-30 bg-gray-200 p-4 rounded-xl"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
+                  className="absolute top-0 right-0 mt-12 w-64 h-96 bg-gray-100 shadow-lg  z-30 bg-gray-00 p-2 rounded-xl"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5 }}
                 >
-                  <div className="mt-4 text-black">
-                    <h3>Table of Contents:</h3>
-                    <div className="flex flex-col">
-                      {toc.map((chapter, index) => (
+                  <div className=" bg-gray-200 px-2 py-1 rounded-lg shadow-sm">
+                    <div className="relative flex justify-around  rounded-lg p-2">
+                      <motion.div
+                        className="absolute top-0 left-0 w-1/2 h-full bg-white rounded-lg shadow-md"
+                        initial={false}
+                        animate={{ x: selectedTab * 100 + "%" }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30,
+                        }}
+                      />
+                      {tabs.map((tab, index) => (
                         <div
                           key={index}
-                          onClick={() => goToLocation(chapter.href)}
-                          className="cursor-pointer p-1 hover:bg-gray-300"
+                          className={`relative z-10 w-1/2 text-center text-sm cursor-pointer ${
+                            selectedTab === index
+                              ? "text-blue-500"
+                              : "text-gray-500"
+                          }`}
+                          onClick={() => setSelectedTab(index)}
                         >
-                          {chapter.label}
+                          <span className=" flex justify-center items-center ">
+                            {tab.icon}
+                          </span>
                         </div>
                       ))}
                     </div>
+                  </div>
+                  <div className="mt-6 text-center relative">
+                    {selectedTab === 0 && (
+                      <div className="flex flex-col overflow-y-scroll">
+                        {toc.map((chapter, index) => (
+                          <div
+                            key={index}
+                            onClick={() => goToLocation(chapter.href)}
+                            className="cursor-pointer p-1 hover:bg-gray-300"
+                          >
+                            {chapter.label}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {selectedTab === 1 && <div>Text Content</div>}
                   </div>
                 </motion.div>
               )}
