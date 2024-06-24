@@ -7,6 +7,7 @@ import { HiOutlineBookmarkSquare } from "react-icons/hi2";
 import { IoBookmarksOutline } from "react-icons/io5";
 import { PiTextAaBold } from "react-icons/pi";
 import { IoBookmark } from "react-icons/io5";
+import { IoClose } from "react-icons/io5";
 import { IoMdAdd } from "react-icons/io";
 
 import { FaBookmark, FaRegFileAlt } from "react-icons/fa";
@@ -24,7 +25,9 @@ const EpubViewer = ({ url }) => {
   const [bookmarks, setBookmarks] = useState([]);
   const [highlights, setHighlights] = useState([]);
   const [bookmarksOn, setbookmarksOn] = useState(false);
+  const [highlightOn, sethighlightOn] = useState(false);
   const [toc, setToc] = useState([]);
+  const [bookMarkModal, setbookMarkModal] = useState(false);
 
   const { id } = useParams();
   console.log(id);
@@ -70,7 +73,6 @@ const EpubViewer = ({ url }) => {
         await book.locations.generate(1600);
         setTotalPages(book.locations.length());
         rendition.display();
-        rendition.injectStylesheet(`body { background-color: black; }`);
       } catch (error) {
         console.error("Error generating locations:", error);
       }
@@ -102,6 +104,7 @@ const EpubViewer = ({ url }) => {
     };
   }, [url]);
 
+  console.log(bookmarks);
   const updatePageNumber = (location) => {
     if (location && book) {
       const currentPage = book.locations.locationFromCfi(location.start.cfi);
@@ -127,12 +130,6 @@ const EpubViewer = ({ url }) => {
       base.pop();
       base = base.join("/");
       renditionRef.current.display(base + "/" + location);
-    }
-  };
-
-  const addBookmark = () => {
-    if (location) {
-      setBookmarks((prev) => [...prev, location.start.cfi]);
     }
   };
 
@@ -255,7 +252,7 @@ const EpubViewer = ({ url }) => {
                       <p className=" text-xl pl-2">BookMarks</p>
                       <button
                         className=" bg-gray-200 text-gray-600 px-2 py-1 rounded-md shadow hover:bg-gray-300 "
-                        onClick={() => alert("Add Bookmarks clicked!")} // Replace with actual functionality
+                        onClick={() => setbookMarkModal(true)} // Replace with actual functionality
                       >
                         <IoMdAdd />
                       </button>
@@ -298,8 +295,20 @@ const EpubViewer = ({ url }) => {
                       </div>
                     )}
                     {selectedTab === 1 && (
-                      <div className="flex p-2 flex-col h-full overflow-y-auto">
-                        <div>Text Content</div>
+                      <div className="flex-1 mt-2 overflow-y-auto relative rounded-lg">
+                        <div>
+                          <div className="flex flex-col h-full overflow-y-auto">
+                            {bookmarks.map((bookmark, index) => (
+                              <div
+                                key={index}
+                                onClick={() => goToBookmark(bookmark.cfiValue)}
+                                className="cursor-pointer py-1 px-2 rounded-lg hover:bg-gray-300"
+                              >
+                                {bookmark.name}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     )}
                     {selectedTab === 2 && (
@@ -313,6 +322,14 @@ const EpubViewer = ({ url }) => {
             </div>
           </div>
         </motion.div>
+
+        {bookMarkModal && (
+          <AddBookMarkModal
+            setBookmarks={setBookmarks}
+            setbookMarkModal={setbookMarkModal}
+            location={location}
+          />
+        )}
 
         <div className="flex w-full h-[100vh] flex-col items-center relative">
           <div ref={viewerRef} className="w-full h-[100vh] bg-gray-100"></div>
@@ -337,3 +354,68 @@ const EpubViewer = ({ url }) => {
 };
 
 export default EpubViewer;
+
+export const AddBookMarkModal = ({
+  setbookMarkModal,
+  setBookmarks,
+  location,
+}) => {
+  const [inputValue, setInputValue] = useState("");
+
+  const handleInputChange = (event) => {
+    setInputValue(event.target.value);
+  };
+
+  const addBookmark = () => {
+    if (location) {
+      console.log(location.start.cfi);
+      setBookmarks((prev) => [
+        ...prev,
+        { name: inputValue, cfiValue: location.start.cfi },
+      ]);
+      setbookMarkModal(false);
+    }
+  };
+
+  return (
+    <motion.div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-50">
+      <motion.div
+        initial={{ opacity: 0, y: 100 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, type: "spring" }}
+        className="bg-gray-50 p-6 rounded-md shadow-md w-80 relative"
+      >
+        <div className="absolute top-2 text-lg right-2 text-gray-600 bg-gray-200 flex justify-center items-center p-1 rounded-lg  ">
+          <motion.button
+            initial={{ rotate: 0 }}
+            whileHover={{ rotate: [10, -10, 0] }}
+            transition={{ duration: 0.4 }}
+            onClick={() => setbookMarkModal(false)}
+            className=""
+          >
+            <IoClose />
+          </motion.button>
+        </div>
+        <h2 className="text-lg font-medium mb-4 text-gray-500">Add Bookmark</h2>
+        <input
+          type="text"
+          id="bookMarkName"
+          value={inputValue}
+          onChange={handleInputChange}
+          className="border text-gray-500 font-medium border-gray-300 focus:border-none outline focus:outline-gray-400 p-2 w-full mb-4 rounded-md bg-gray-100"
+          placeholder="Enter bookmark name"
+        />
+        <motion.button
+          initial={{ scale: 1 }}
+          whileHover={{ scale: 1.03 }}
+          exit={{ scale: 1 }}
+          onClick={addBookmark}
+          transition={{ duration: 0.3, type: "spring" }}
+          className="focus:outline-none w-full text-white bg-gray-700  focus:ring-4 focus:ring-gray-300 font-medium  rounded-lg text-md px-3  py-1.5 mr-2 mb-2 dark:bg-blue-600/80 dark:hover:bg-blue-700/80 dark:focus:ring-blue-500/80"
+        >
+          Save Bookmark
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+};
