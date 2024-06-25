@@ -424,7 +424,14 @@ Router.post("/addBook", async (req, res) => {
 
     console.log(n);
 
-    let results = await execSync(`python ./addBook.py  "${pth}" "${mainDes}"`);
+    // you want write code to copy the file 
+    //use uid to give uniqe name to the books 
+    // mpub , asdfasdd.epub
+
+    
+
+
+    let results = await execSync(`python ./addBook.py  "${pth}" "${mainDes}"`); //extracts the file 
 
     await book.getCover(n);
     await book.bookData(n);
@@ -632,7 +639,7 @@ Router.get("/home", async (req, res) => {
 
 let des = mainDes;
 Router.use(express.static(des));
-Router.use(express.static('E:\\books'));
+Router.use(express.static('./epub'));
 
 
 Router.get("/Read", async (req, res) => {
@@ -698,10 +705,12 @@ Router.get("/delBook", async (req, res) => {
 Router.get("/addFolder/", async (req, res) => {
   const { path: p } = req.query;
   // res.send(path);
-
+  id = uid() //file name 
+  let ifsend = true
   let fld = fs.existsSync(p);
   let send = false;
   if (!fld) {
+    ifsend = false ;
     res.json({ res: "NVP" });
     return;
   }
@@ -709,20 +718,126 @@ Router.get("/addFolder/", async (req, res) => {
   console.log(path);
 
   let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
   let pth = p;
   let des = mainDes;
+
+  // for over des folder files and if they are epub files then copy them into epub folder 
+
+
   try {
     // Read the directory to get all EPUB files
-    let realPath = pth.replace(/\\/g, "/");
-    let realDes = des.replace(/\\/g, "/") + "/";
+    // let realPath = pth.replace(/\\/g, "/");
+    // let realDes = des.replace(/\\/g, "/") + "/";
     console.log(pth);
     console.log(pth.replace(/\\/g, "/"), des.replace(/\\/g, "/") + "/");
     let results = await execSync(`python ./addFolder.py  "${pth}" "${des}"`);
     console.log(results);
   } catch (error) {
     console.error("Error reading directory:", error);
-  } finally {
-    res.json({ res: "Done" });
+  } 
+
+
+  // variablespraseing data 
+  let d = await fs.readFileSync(dataPath);
+  let dSub = await fs.readFileSync(dataPathSub);
+  let Data = JSON.parse(d);
+  let DataSub = JSON.parse(dSub);
+  let files = await fs.readdirSync(des);
+
+  
+  // Adding the Books and other properties if its alredy not there in the files
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    Data["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    DataSub["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    Data["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    DataSub["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if has Books property
+  if (!Data.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    Data["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    DataSub["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  
+  try { 
+
+    let bk = Data["Books"];
+  let bkSub = DataSub["Books"];
+  for (let i of files) {
+    console.log(i, "here i");
+    let book = new Book(pth, des);
+    await book.getCover(i);
+    await book.bookData(i);
+    // console.log(book.Cover, book.Chapters);
+
+    
+    let tempTwo = {
+      id : id,
+      Name: book.Name,
+      Cover: book.Cover,
+      FolderName : i.replace('.epub', '')
+    };
+    let temp = {
+      id : id ,
+      Name: book.Name,
+      Cover: book.Cover,
+      FolderName :  i.replace('.epub', ''),
+      Chapters: book.Chapters,
+    };
+    let dont = true;
+    for (let o of bkSub) {
+      for (let c in o) {
+        if (o[c] === temp.Name) {
+          dont = false;
+        }
+      }
+    }
+    if (dont) {
+      bkSub.push(tempTwo);
+      bk.push(temp);
+    }
+  }
+  DataSub["Books"] = bkSub;
+  Data["Books"] = bk;
+  await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+  await fs.writeFileSync(dataPath, JSON.stringify(Data));
+
+  }catch(error){
+    console.log('error here ' , error)
+  }finally {
+    if(ifsend){
+      res.json({ res: "Done" });
+    }
   }
 
   // let wrt = await fs.writeFileSync(dataPath, JSON.stringify(Data));
@@ -737,7 +852,7 @@ Router.get("/allBooks", async (req, res) => {
 
   let dataPath = "./Database/Main.json";
   let dataPathSub = "./Database/Sub.json";
-  let pth = "";
+  
   let des = mainDes;
 
   let files = await fs.readdirSync(des);
