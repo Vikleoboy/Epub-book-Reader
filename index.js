@@ -16,6 +16,7 @@ const unzipper = require("unzipper");
 let cors = require("cors");
 const { default: axios } = require("axios");
 const { execSync } = require("child_process");
+const { v4: uuidv4 } = require('uuid');
 let mainDes = __dirname + "\\books";
 
 // const corsOptions = {
@@ -41,6 +42,8 @@ let t = async () => {
   let y = await fs.existsSync("./Database");
   if (!y) {
     await fs.mkdirSync("./Database");
+    //add .epub EpubBooks Folder in the project database directory
+    await fs.mkdirSync("./Database/EpubBooks");
     await fs.writeFileSync("./Database/Main.json", "{}");
     await fs.writeFileSync("./Database/Sub.json", "{}");
   }
@@ -66,7 +69,7 @@ Router.get("/getTags", async (req, res) => {
   const { tagName } = req.query;
   // acessing the databse
 
-  console.log("Came in Tags ");
+  console.log("Came in getTags Function");
   let dataPath = "./Database/Main.json";
   let dataPathSub = "./Database/Sub.json";
 
@@ -288,11 +291,58 @@ Router.get("/delTag", async (req, res) => {
   }
 });
 
+// const isEPubFileExists = (ePubFileData) => {
+//   let ePubBooksRec = ePubFileData["EPubBooks"];
+
+// }
+
+// Function to generate and ensure unique UUID
+function generateAndEnsureUniqueUuid() {
+  let uuid;
+  do {
+    uuid = uuidv4();
+  } while (data.items.hasOwnProperty(uuid));
+  return uuid;
+}
+
+const addEpubBooks = async (ePubFilePath) =>{
+  console.log("Unde addEpubBooks function")
+  console.log("Path of file is : "+ePubFilePath) 
+  // if (!ePubFileData.hasOwnProperty("EPubBooks")) {
+  //   console.log("Creating the EPubBooks tag in ePubBooks Json file");
+  //   ePubFileData["EPubBooks"] = [];
+  // } else {
+  //   console.log("not comeign in here ");
+  // }
+
+  // loop over existing epub files
+  // Add only if does not exists 
+  //try{
+    // const fileName = path.basename(ePubFilePath);
+    // const isFile = await fs.access(ePubFilePath).then(() => true).catch(() => false);
+
+  // Read file name from the provided path
+  const fileName = generateAndEnsureUniqueUuid() + path.basename(ePubFilePath);
+
+  // Ensure the destination directory exists
+  const destDir = './Database/EpubBooks';
+  // Construct new file path with .epub extension
+  const newFilePath = path.join(destDir, `${fileName}`);
+
+  // Move the file to destination directory
+  fs.copyFileSync(ePubFilePath, newFilePath);
+    }
+  // }catch(){
+
+  // }
+
 Router.post("/addBook", async (req, res) => {
   console.log("in here ");
 
   let p = req.body["pm"];
   console.log(p);
+  //adding the .epub file to epub folders 
+  addEpubBooks(p);
   // acessing the databse
   let dataPath = "./Database/Main.json";
   let dataPathSub = "./Database/Sub.json";
@@ -808,19 +858,19 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 
-app.whenReady().then(() => {
-  createWindow();
+// app.whenReady().then(() => {
+//   createWindow();
 
-  app.on("activate", () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-});
+//   app.on("activate", () => {
+//     // On macOS it's common to re-create a window in the app when the
+//     // dock icon is clicked and there are no other windows open.
+//     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+//   });
+// });
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
-});
+// app.on("window-all-closed", () => {
+//   if (process.platform !== "darwin") app.quit();
+// });
