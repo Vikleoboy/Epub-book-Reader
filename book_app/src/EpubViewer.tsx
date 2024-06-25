@@ -106,8 +106,9 @@ const EpubViewer = ({ url }) => {
 
   console.log(bookmarks);
   const updatePageNumber = (location) => {
-    if (location && book) {
+    if (true) {
       const currentPage = book.locations.locationFromCfi(location.start.cfi);
+      console.log(currentPage);
       setPageNumber(currentPage + 1);
     }
   };
@@ -330,6 +331,10 @@ const EpubViewer = ({ url }) => {
             location={location}
           />
         )}
+
+        <div className=" absolute w-full p-3 bg-slate-400 z-40 top-[92%]">
+          {pageNumber}
+        </div>
 
         <div className="flex w-full h-[100vh] flex-col items-center relative">
           <div ref={viewerRef} className="w-full h-[100vh] bg-gray-100"></div>
