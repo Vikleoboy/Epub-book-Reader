@@ -42,8 +42,6 @@ let t = async () => {
   let y = await fs.existsSync("./Database");
   if (!y) {
     await fs.mkdirSync("./Database");
-    //add .epub EpubBooks Folder in the project database directory
-    await fs.mkdirSync("./Database/EpubBooks");
     await fs.writeFileSync("./Database/Main.json", "{}");
     await fs.writeFileSync("./Database/Sub.json", "{}");
   }
@@ -51,6 +49,12 @@ let t = async () => {
   let n = await fs.existsSync("./books");
   if (!n) {
     await fs.mkdirSync("./books");
+  }
+
+  //add .epub EpubBooks Folder in the project database directory
+  let epubFol = await fs.existsSync("./EpubBooks");
+  if (!epubFol) {
+    await fs.mkdirSync("./EpubBooks");
   }
 };
 
@@ -341,8 +345,8 @@ Router.post("/addBook", async (req, res) => {
 
   let p = req.body["pm"];
   console.log(p);
-  //adding the .epub file to epub folders 
-  addEpubBooks(p);
+
+  
   // acessing the databse
   let dataPath = "./Database/Main.json";
   let dataPathSub = "./Database/Sub.json";
@@ -430,7 +434,7 @@ Router.post("/addBook", async (req, res) => {
 
     
 
-
+    await addEpubBooks(pth);
     let results = await execSync(`python ./addBook.py  "${pth}" "${mainDes}"`); //extracts the file 
 
     await book.getCover(n);
