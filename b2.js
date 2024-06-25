@@ -82,31 +82,19 @@ class Book {
     }
 
     // console.log(flds , 'this here is were ')
-    let bookFolder = path.join(this.des, k[0]);
-    let flds = await fs.readdirSync(bookFolder);
+
+    let flds = await fs.readdirSync(path.join(this.des, k[0]));
     flds.pop('.DS_Store')
 
 
-    let opPresent = flds.filter(isOpf);
-    console.log(opPresent, 'here')
-    function isOpf(file) {
-      return  path.basename(file).includes('.opf')
-    }
-
-
+    let opPresent = true;
 
     for (let f of flds) {
       let know = await fs
         .lstatSync(path.join(this.des ,k[0] ,f))
         .isDirectory();
-      
-      if (know) {
-        var insideFiles = await fs.readdirSync(path.join(bookFolder, f))
-        insideFiles.pop('.DS_Store')
-        console.log(insideFiles.filter(isOpf))
-      }
-      
-      if (opPresent.length === 0 && insideFiles.filter(isOpf).length > 0  && know) {
+
+      if (f.includes("O") || (f.includes("o") && know)) {
         console.log("in the ops");
         opPresent = false;
         let book = await fs.readdirSync(path.join(this.des ,k[0] ,f));
@@ -150,12 +138,10 @@ class Book {
             }
           }
         }
-      } else {
-        console.log('DAM ')
       }
     }
 
-    if (opPresent.length > 0) {
+    if (opPresent) {
       let book = await fs.readdirSync(path.join(this.des , k[0]));
 
       for (let i of book) {
@@ -210,33 +196,17 @@ class Book {
     if (ifExists) {
       console.log(k);
 
-      let bookFolder = path.join(this.des, k[0]);
-      let flds = await fs.readdirSync(bookFolder);
-      console.log(flds)
-    flds.pop('.DS_Store')
+      let flds = await fs.readdirSync(path.join(this.des , k[0]));
+      flds.pop('.DS_Store')
 
-      
+      let opPresent = true;
 
-    let opPresent = flds.filter(isNcx);
-    console.log(opPresent, 'here')
-    function isNcx(file) {
-      return  file.includes('.ncx')
-    }
-      
       for (let f of flds) {
         let know = await fs
-        .lstatSync(path.join(this.des ,k[0] ,f))
+          .lstatSync(path.join(this.des ,k[0] ,f))
           .isDirectory();
-        console.log(know , 'know')
-      
-      if (know) {
-        var insideFiles = await fs.readdirSync(path.join(bookFolder, f))
-        insideFiles.pop('.DS_Store')
-        
-        console.log(insideFiles.filter(isNcx), 'm', insideFiles)
-      }
 
-        if (opPresent.length === 0 && insideFiles.filter(isNcx).length > 0  && know) {
+        if (f.includes("O") || (f.includes("o") && know)) {
           opPresent = false;
           let book = await fs.readdirSync(path.join(this.des ,k[0] ,f));
 
@@ -270,12 +240,10 @@ class Book {
               };
             }
           }
-        } else {
-          console.log('something wrong ')
         }
       }
 
-      if (opPresent.length > 0) {
+      if (opPresent) {
         let book = await fs.readdirSync(path.join(this.des , k[0]));
 
         for (let i of book) {
@@ -318,25 +286,25 @@ class Book {
   }
 }
 
-let bk = new Book(
-  "/Users/pablo/Downloads",
-  "/Users/pablo/Downloads/Epub-book-Reader-EPubJS-Integration/books"
-);
+// let bk = new Book(
+//   "C:/Users/Vikleo/Desktop/Steve.epub",
+//   "C:/Users/Vikleo/Desktop/bk"
+// );
 
 // let bk = new Book(
 //   "C:\\Users\\Vikleo\\Desktop\\brianna-wiest-the-mountain-is-you-thought-catalog-books-2021.epub",
 //   "C:\\Users\\Vikleo\\Desktop\\bk"
 // );
 // // // await bk.init();
-async function somethign() {
-  
+// async function somethign() {
+//   let y = await bk.init();
 
-  let n = await bk.getCover("L");
-  await bk.bookData("L");
-  console.log(bk.Name, bk.Cover, " here" );
-}
+//   let n = await bk.getCover("Steve");
+//   await bk.bookData("Steve");
+//   console.log(bk.Name, bk.Cover, " here", y);
+// }
 
-somethign();
-
+// somethign();
+// await bk.bookData("book");
 
 module.exports = Book;

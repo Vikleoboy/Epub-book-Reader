@@ -698,9 +698,16 @@ Router.get("/addFolder", async (req, res) => {
 
     // Placeholder for your Python script call
     try {
-      const results = await execSync(
-        `python ./addFolder.py "${pth}" "${mainDes}"`
-      );
+      let results;
+      if (OS === 'MacOS') {
+        const results = await execSync(
+          `python3 ./addFolder.py "${pth}" "${mainDes}"`
+        );
+      } else if (OS === 'Windows') {
+        const results = await execSync(
+          `python ./addFolder.py "${pth}" "${mainDes}"`
+        );
+      }
       console.log("Python script results:", results.toString());
     } catch (error) {
       console.error("Error executing Python script:", error);
@@ -809,19 +816,19 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 
-app.whenReady().then(() => {
-  createWindow();
+// app.whenReady().then(() => {
+//   createWindow();
 
-  app.on("activate", () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-});
+//   app.on("activate", () => {
+//     // On macOS it's common to re-create a window in the app when the
+//     // dock icon is clicked and there are no other windows open.
+//     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+//   });
+// });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
-});
+// // Quit when all windows are closed, except on macOS. There, it's common
+// // for applications and their menu bar to stay active until the user quits
+// // explicitly with Cmd + Q.
+// app.on("window-all-closed", () => {
+//   if (process.platform !== "darwin") app.quit();
+// });
