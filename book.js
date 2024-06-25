@@ -1,6 +1,8 @@
 const path = require("path");
-const fs = require("fs").promises;
+const fs = require("fs");
+
 const cheerio = require("cheerio");
+
 const extract = require("extract-zip");
 
 class Book {
@@ -24,28 +26,42 @@ class Book {
   }
 
   async sayhell() {
-    console.log("HELLL ");
+    console.log("HELLL NOOO  ");
   }
 
   async init() {
-    const fileName = path.basename(this.pth);
-    const isFile = await fs.access(this.pth).then(() => true).catch(() => false);
+    let fileName = path.basename(this.pth);
+    let isFile = await fs.existsSync(this.pth);
 
     console.log(fileName, isFile);
     if (fileName.includes(".epub") && isFile) {
-      const k = fileName.split(".");
+      let k = fileName.split(".");
       k.pop();
-      const m = k.join(".");
-      const destZip = path.join(this.des, `${m}.zip`);
+      console.log(k);
+      let m = k.join(".");
+      k = [m];
+      let copyfile = await fs.copyFileSync(
+        this.pth,
+        path.join(this.des , k[0]) + ".zip"
+      );
 
-      await fs.copyFile(this.pth, destZip);
+      await fs.rmSync(path.join(this.des , k[0]), { recursive: true, force: true });
+      await fs.mkdirSync(path.join(this.des , k[0]));
 
-      const destFolder = path.join(this.des, m);
-      await fs.rm(destFolder, { recursive: true, force: true });
-      await fs.mkdir(destFolder);
+      await extract(path.join(this.des , k[0]) + ".zip", {
+        dir: path.join(this.des , k[0]),
+      });
 
-      await extract(destZip, { dir: destFolder });
-      await fs.rm(destZip, { force: true });
+      // try {
+      //   await fs
+      //     .createReadStream(path.join(this.des , k[0]) + ".zip")
+      //     .pipe(unzipper.Extract({ path: path.join(this.des , k[0]) }))
+      //     .promise();
+      //   console.log("Extraction complete");
+      // } catch (error) {
+      //   console.error("Error during extraction:", error);
+      // }
+      await fs.rmSync(path.join(this.des , k[0]) + ".zip", { force: true });
       return 1;
     } else {
       console.log("not an epubfile");
@@ -54,35 +70,42 @@ class Book {
   }
 
   async getCover(fld) {
-    const fileName = path.basename(this.pth);
+    let fileName = path.basename(this.pth);
     let k;
     if (fld !== undefined) {
       k = [fld];
     } else {
       k = fileName.split(".");
       k.pop();
-      const m = k.join(".");
-      k = [m];
+      let m = k.join(".");
+      k = [m];``
     }
 
-    const folderPath = path.join(this.des, k[0]);
-    const flds = await fs.readdir(folderPath);
+    // console.log(flds , 'this here is were ')
+
+    let flds = await fs.readdirSync(path.join(this.des, k[0]));
+    flds.pop('.DS_Store')
+
 
     let opPresent = true;
 
-    for (const f of flds) {
-      const subFolderPath = path.join(folderPath, f);
-      const isDirectory = (await fs.lstat(subFolderPath)).isDirectory();
+    for (let f of flds) {
+      let know = await fs
+        .lstatSync(path.join(this.des ,k[0] ,f))
+        .isDirectory();
 
-      if ((f.includes("O") || f.includes("o")) && isDirectory) {
+      if (f.includes("O") || (f.includes("o") && know)) {
         console.log("in the ops");
         opPresent = false;
-        const bookFiles = await fs.readdir(subFolderPath);
+        let book = await fs.readdirSync(path.join(this.des ,k[0] ,f));
 
-        for (const i of bookFiles) {
+        for (let i of book) {
           if (i.includes(".opf")) {
-            const opfFilePath = path.join(subFolderPath, i);
-            const rd = await fs.readFile(opfFilePath, "utf8");
+            console.log(path.join(this.des ,k[0] ,f,i) );
+            let rd = await fs.readFileSync(
+              path.join(this.des ,k[0] ,f,i),
+              "utf8"
+            );
             const $ = cheerio.load(rd);
 
             let navContent = $('meta[name~="cover"]');
@@ -98,16 +121,19 @@ class Book {
             this.Name = bookName;
             console.log(navContent.attr("name"));
 
-            const nm = navContent.attr("name");
-            const cv = navContent.attr("content");
+            let nm = navContent.attr("name");
+            let cv = navContent.attr("content");
 
             console.log(cv + "here cv");
 
             if (nm === "cover") {
-              const pic = $(`item[id~="${cv}"]`);
-              const url = pic.attr("href");
-              const realLink = path.join(subFolderPath, url);
-              this.Cover = realLink;
+              let pic = $(`item[id~="${cv}"]`);
+
+              let url = pic.attr("href");
+
+              console.log(url);
+              let realLink = path.join(this.des ,k[0] ,f) + "\\" + url;
+              this.Cover = realLink.replaceAll(/\\/g, "/");
               return url;
             }
           }
@@ -116,15 +142,24 @@ class Book {
     }
 
     if (opPresent) {
-      const bookFiles = await fs.readdir(folderPath);
+      let book = await fs.readdirSync(path.join(this.des , k[0]));
 
-      for (const i of bookFiles) {
+      for (let i of book) {
         if (i.includes(".opf")) {
-          const opfFilePath = path.join(folderPath, i);
-          const rd = await fs.readFile(opfFilePath, "utf8");
+          let rd = await fs.readFileSync(
+            path.join(this.des , k[0]) + "\\" + i,
+            "utf8"
+          );
           const $ = cheerio.load(rd);
-          let navContent = $('meta[name~="cover"]');
-          let bookName = $("metadata").find("dc\\:title").text();
+          const navContent = $('meta[name~="cover"]');
+          const bookName = $("metadata").find("dc\\:title").text();
+
+          this.Name = bookName;
+
+          console.log(navContent.attr("name"));
+
+          let nm = navContent.attr("name");
+          let cv = navContent.attr("content");
 
           if (navContent.length === 0 || bookName.length === 0) {
             console.log("IN HERE");
@@ -132,105 +167,114 @@ class Book {
             bookName = $("opf\\:metadata").find("dc\\:title").text();
           }
 
-          this.Name = bookName;
-
-          console.log(navContent.attr("name"));
-
-          const nm = navContent.attr("name");
-          const cv = navContent.attr("content");
-
           if (nm === "cover") {
-            const pic = $(`item[id~="${cv}"]`);
-            const url = pic.attr("href");
-            const realLink = path.join(folderPath, url);
-            this.Cover = realLink;
+            let pic = $(`item[id~="${cv}"]`);
+
+            let url = pic.attr("href");
+
+            let realLink = path.join(this.des , k[0]) + "\\" + url;
+            this.Cover = realLink.replaceAll(/\\/g, "/");
             return url;
           }
         }
       }
     }
   }
-
   async bookData(fld) {
-    const fileName = path.basename(this.pth);
+    let fileName = path.basename(this.pth);
     let k;
     if (fld !== undefined) {
       k = [fld];
     } else {
       k = fileName.split(".");
       k.pop();
-      const m = k.join(".");
+      let m = k.join(".");
       k = [m];
     }
-    const folderPath = path.join(this.des, k[0]);
-    const ifExists = await fs.access(folderPath).then(() => true).catch(() => false);
+    let ifExists = await fs.existsSync(path.join(this.des , k[0]));
 
     if (ifExists) {
       console.log(k);
 
-      const flds = await fs.readdir(folderPath);
+      let flds = await fs.readdirSync(path.join(this.des , k[0]));
+      flds.pop('.DS_Store')
 
       let opPresent = true;
 
-      for (const f of flds) {
-        const subFolderPath = path.join(folderPath, f);
-        const isDirectory = (await fs.lstat(subFolderPath)).isDirectory();
+      for (let f of flds) {
+        let know = await fs
+          .lstatSync(path.join(this.des ,k[0] ,f))
+          .isDirectory();
 
-        if ((f.includes("O") || f.includes("o")) && isDirectory) {
+        if (f.includes("O") || (f.includes("o") && know)) {
           opPresent = false;
-          const bookFiles = await fs.readdir(subFolderPath);
+          let book = await fs.readdirSync(path.join(this.des ,k[0] ,f));
 
-          for (const i of bookFiles) {
+          for (let i of book) {
             if (i.includes(".ncx")) {
-              const ncxFilePath = path.join(subFolderPath, i);
-              const rd = await fs.readFile(ncxFilePath, "utf8");
+              let rd = await fs.readFileSync(
+                path.join(this.des ,k[0] ,f,i),
+                "utf8"
+              );
               const $ = cheerio.load(rd);
               const navContent = $("navMap navPoint");
 
               let lessons = [];
-              for (const p of navContent) {
-                const point = $(p);
-                let name = point.find("navLabel").text().replace(/\s+/g, " ").trim();
-                const link = point.find("content").attr("src");
-                const realLink = path.join(subFolderPath, link);
+              for (let p of navContent) {
+                let point = $(p);
+
+                let name = point.find("navLabel").text().replaceAll("  ", "");
+                name = name.replaceAll(/\t/g, "");
+                name = name.replaceAll(/\n/g, "");
+                let link = point.find("content").attr("src");
+                let realLink = path.join(this.des ,k[0] ,f) + "\\" + link;
                 lessons.push({
                   name: name,
-                  link: realLink,
+                  link: realLink.replaceAll(/\\/g, "/"),
                 });
               }
 
               this.Chapters = lessons;
-              return { Chapters: lessons };
+              return {
+                Chapters: lessons,
+              };
             }
           }
         }
       }
 
       if (opPresent) {
-        const bookFiles = await fs.readdir(folderPath);
+        let book = await fs.readdirSync(path.join(this.des , k[0]));
 
-        for (const i of bookFiles) {
+        for (let i of book) {
           if (i.includes(".ncx")) {
-            const ncxFilePath = path.join(folderPath, i);
-            const rd = await fs.readFile(ncxFilePath, "utf8");
+            let rd = await fs.readFileSync(
+              path.join(this.des , k[0]) + "\\" + "\\" + i,
+              "utf8"
+            );
             const $ = cheerio.load(rd);
             const navContent = $("navMap navPoint");
 
             let lessons = [];
-            for (const p of navContent) {
-              const point = $(p);
-              let name = point.find("navLabel").text().replace(/\s+/g, " ").trim();
-              const link = point.find("content").attr("src");
-              const realLink = path.join(folderPath, link);
+            for (let p of navContent) {
+              let point = $(p);
+
+              let name = point.find("navLabel").text().replaceAll("  ", "");
+              name = name.replaceAll(/\t/g, "");
+              name = name.replaceAll(/\n/g, "");
+              let link = point.find("content").attr("src");
+              let realLink = path.join(this.des , k[0]) + "\\" + link;
 
               lessons.push({
                 name: name,
-                link: realLink,
+                link: realLink.replaceAll(/\\/g, "/"),
               });
             }
 
             this.Chapters = lessons;
-            return { Chapters: lessons };
+            return {
+              Chapters: lessons,
+            };
           }
         }
       }
@@ -242,19 +286,25 @@ class Book {
   }
 }
 
-// Example usage
 // let bk = new Book(
-//   "/path/to/your/file.epub",
-//   "/path/to/destination/folder"
+//   "C:/Users/Vikleo/Desktop/Steve.epub",
+//   "C:/Users/Vikleo/Desktop/bk"
 // );
 
+// let bk = new Book(
+//   "C:\\Users\\Vikleo\\Desktop\\brianna-wiest-the-mountain-is-you-thought-catalog-books-2021.epub",
+//   "C:\\Users\\Vikleo\\Desktop\\bk"
+// );
+// // // await bk.init();
 // async function somethign() {
 //   let y = await bk.init();
-//   let n = await bk.getCover();
-//   await bk.bookData();
+
+//   let n = await bk.getCover("Steve");
+//   await bk.bookData("Steve");
 //   console.log(bk.Name, bk.Cover, " here", y);
 // }
 
 // somethign();
+// await bk.bookData("book");
 
 module.exports = Book;

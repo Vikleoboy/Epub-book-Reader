@@ -16,7 +16,8 @@ const unzipper = require("unzipper");
 let cors = require("cors");
 const { default: axios } = require("axios");
 const { execSync } = require("child_process");
-let mainDes = __dirname + "\\books";
+let mainDes = path.join(__dirname, "books");
+let epubFolder = path.join(__dirname, "epubBooks");
 
 // const corsOptions = {
 //   origin: "http://localhost:3002", // Allow requests from this origin
@@ -48,6 +49,11 @@ let t = async () => {
   let n = await fs.existsSync("./books");
   if (!n) {
     await fs.mkdirSync("./books");
+  }
+
+  let epubFolder = await fs.existsSync("./epubBooks");
+  if (!epubFolder) {
+    await fs.mkdirSync("./epubBooks");
   }
 };
 
@@ -374,14 +380,15 @@ Router.post("/addBook", async (req, res) => {
 
     console.log(n);
 
-    // you want write code to copy the file 
-    //use uid to give uniqe name to the books 
+    // you want write code to copy the file
+    //use uid to give uniqe name to the books
     // mpub , asdfasdd.epub
 
-    
+    let id = uid(8);
 
-
-    let results = await execSync(`python ./addBook.py  "${pth}" "${mainDes}"`); //extracts the file 
+    let results = await execSync(
+      `python ./addBook.py  "${pth}" "${mainDes}" "${epubFolder}" "${id}"`
+    ); //extracts the file
 
     await book.getCover(n);
     await book.bookData(n);
@@ -389,12 +396,14 @@ Router.post("/addBook", async (req, res) => {
 
     // templets for adding the book for each databse
     let tempTwo = {
+      id: id,
       Name: book.Name,
       Cover: book.Cover,
       index: bkSub.length,
       base: des.replace(/\\/g, "/"),
     };
     let temp = {
+      id: id,
       Name: book.Name,
       Cover: book.Cover,
       Chapters: book.Chapters,
@@ -589,8 +598,7 @@ Router.get("/home", async (req, res) => {
 
 let des = mainDes;
 Router.use(express.static(des));
-Router.use(express.static('./epub'));
-
+Router.use(express.static(epubFolder));
 
 Router.get("/Read", async (req, res) => {
   const { id } = req.query;
@@ -606,15 +614,12 @@ Router.get("/Read", async (req, res) => {
   let Data = JSON.parse(d);
   if (DataSub["Books"].length !== 0) {
     for (let i of DataSub["Books"]) {
-      
       if (i["Name"] === id) {
-        console.log(i['FolderName'])
-        
-        res.json(
-          {
-            url : `http://localhost:3002/${i['FolderName']}.epub`
-          }
-        );
+        console.log(i["id"]);
+
+        res.json({
+          url: `http://localhost:3002/${i["id"]}.epub`,
+        });
       }
     }
   }
@@ -652,248 +657,109 @@ Router.get("/delBook", async (req, res) => {
   }
 });
 
-Router.get("/addFolder/", async (req, res) => {
+Router.get("/addFolder", async (req, res) => {
   const { path: p } = req.query;
-  // res.send(path);
-  id = uid() //file name 
-  let ifsend = true
-  let fld = fs.existsSync(p);
-  let send = false;
-  if (!fld) {
-    ifsend = false ;
-    res.json({ res: "NVP" });
-    return;
-  }
-
-  console.log(path);
-
-  let dataPath = "./Database/Main.json";
-  let dataPathSub = "./Database/Sub.json";
-  let pth = p;
-  let des = mainDes;
-
-  // for over des folder files and if they are epub files then copy them into epub folder 
-
+  let ifsend = true;
 
   try {
-    // Read the directory to get all EPUB files
-    // let realPath = pth.replace(/\\/g, "/");
-    // let realDes = des.replace(/\\/g, "/") + "/";
-    console.log(pth);
-    console.log(pth.replace(/\\/g, "/"), des.replace(/\\/g, "/") + "/");
-    let results = await execSync(`python ./addFolder.py  "${pth}" "${des}"`);
-    console.log(results);
-  } catch (error) {
-    console.error("Error reading directory:", error);
-  } 
+    if (!fs.existsSync(p)) {
+      res.json({ res: "NVP" });
+      return;
+    }
 
+    console.log("Input path:", p);
 
-  // variablespraseing data 
-  let d = await fs.readFileSync(dataPath);
-  let dSub = await fs.readFileSync(dataPathSub);
-  let Data = JSON.parse(d);
-  let DataSub = JSON.parse(dSub);
-  let files = await fs.readdirSync(des);
+    const dataPath = "./Database/Main.json";
+    const dataPathSub = "./Database/Sub.json";
+    const des = mainDes;
 
-  
-  // Adding the Books and other properties if its alredy not there in the files
-  // checks if it has base proerty
-  if (!Data.hasOwnProperty("Tags")) {
-    console.log("Here in the if ");
-    Data["Tags"] = [];
-  } else {
-    console.log("not comeign in here ");
-  }
-  if (!DataSub.hasOwnProperty("Tags")) {
-    console.log("Here in the if ");
-    DataSub["Tags"] = [];
-  } else {
-    console.log("not comeign in here ");
-  }
+    let pth = p.replace(/"/g, "");
+    console.log("Sanitized path:", pth);
 
-  // checks if it has base proerty
-  if (!Data.hasOwnProperty("Base")) {
-    console.log("Here in the if ");
-    Data["Base"] = mainDes.replace(/\\/g, "/");
-  } else {
-    console.log("not comeign in here ");
-  }
-  if (!DataSub.hasOwnProperty("Base")) {
-    console.log("Here in the if ");
-    DataSub["Base"] = mainDes.replace(/\\/g, "/");
-  } else {
-    console.log("not comeign in here ");
-  }
+    // Placeholder for your Python script call
+    try {
+      const results = await execSync(
+        `python ./addFolder.py "${pth}" "${mainDes}"`
+      );
+      console.log("Python script results:", results.toString());
+    } catch (error) {
+      console.error("Error executing Python script:", error);
+    }
 
-  // checks if has Books property
-  if (!Data.hasOwnProperty("Books")) {
-    console.log("Here in the if ");
-    Data["Books"] = [];
-  } else {
-    console.log("not comeign in here ");
-  }
-  if (!DataSub.hasOwnProperty("Books")) {
-    console.log("Here in the if ");
-    DataSub["Books"] = [];
-  } else {
-    console.log("not comeign in here ");
-  }
-  
-  try { 
+    let d = await fs.readFileSync(dataPath, "utf8");
+    let dSub = await fs.readFileSync(dataPathSub, "utf8");
+    let tm = await fs.readFileSync("./temp.json");
+    let temp = JSON.parse(tm);
+    let Data = JSON.parse(d);
+    let DataSub = JSON.parse(dSub);
 
-    let bk = Data["Books"];
-  let bkSub = DataSub["Books"];
-  for (let i of files) {
-    console.log(i, "here i");
-    let book = new Book(pth, des);
-    await book.getCover(i);
-    await book.bookData(i);
-    // console.log(book.Cover, book.Chapters);
+    let dummy = [];
 
-    
-    let tempTwo = {
-      id : id,
-      Name: book.Name,
-      Cover: book.Cover,
-      FolderName : i.replace('.epub', '')
-    };
-    let temp = {
-      id : id ,
-      Name: book.Name,
-      Cover: book.Cover,
-      FolderName :  i.replace('.epub', ''),
-      Chapters: book.Chapters,
-    };
-    let dont = true;
-    for (let o of bkSub) {
-      for (let c in o) {
-        if (o[c] === temp.Name) {
-          dont = false;
-        }
+    let files = await fs.readdirSync(des);
+
+    // Ensure necessary properties exist
+    if (!Data.Tags) Data.Tags = [];
+    if (!DataSub.Tags) DataSub.Tags = [];
+    if (!Data.Base) Data.Base = des.replace(/\\/g, "/");
+    if (!DataSub.Base) DataSub.Base = des.replace(/\\/g, "/");
+    if (!Data.Books) Data.Books = [];
+    if (!DataSub.Books) DataSub.Books = [];
+
+    for (let i of files) {
+      console.log("Processing file:", i);
+      let id = uid(8);
+      let book = new Book(pth, des);
+      await book.getCover(i);
+      await book.bookData(i);
+
+      let tempTwo = {
+        id,
+        Name: book.Name,
+        Cover: book.Cover,
+        FolderName: i.replace(".epub", ""),
+      };
+      let temp = {
+        ...tempTwo,
+        Chapters: book.Chapters,
+      };
+
+      let exists = DataSub.Books.some((o) => o.Name === temp.Name);
+      if (!exists) {
+        DataSub.Books.push(tempTwo);
+        Data.Books.push(temp);
+        dummy.push(id);
+
+        // try {
+        //   const results = await execSync(
+        //     `python ./addBook.py "${path.join(
+        //       pth,
+        //       i
+        //     )}.epub" "${mainDes}" "${epubFolder}" "${id}"`
+        //   );
+
+        //   console.log("Book added:", results.toString());
+        // } catch (error) {
+        //   console.error("Error executing addBook.py:", error);
+        // }
       }
     }
-    if (dont) {
-      bkSub.push(tempTwo);
-      bk.push(temp);
-    }
-  }
-  DataSub["Books"] = bkSub;
-  Data["Books"] = bk;
-  await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
-  await fs.writeFileSync(dataPath, JSON.stringify(Data));
 
-  }catch(error){
-    console.log('error here ' , error)
-  }finally {
-    if(ifsend){
+    let tp = { currentBooks: dummy };
+
+    await fs.writeFileSync("./temp.json", JSON.stringify(tp));
+    await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+    await fs.writeFileSync(dataPath, JSON.stringify(Data));
+
+    ifsend = false;
+    res.json({ res: "Done" });
+  } catch (error) {
+    console.error("Error in route handler:", error);
+    res.json({ res: "Error" });
+  } finally {
+    if (ifsend) {
       res.json({ res: "Done" });
     }
   }
-
-  // let wrt = await fs.writeFileSync(dataPath, JSON.stringify(Data));
-});
-
-Router.get("/allBooks", async (req, res) => {
-  const { path: pathToDes } = req.query;
-
-  console.log("I HAV ENO I DEA WHATS HAPPENING ");
-
-  console.log("in the all books ");
-
-  let dataPath = "./Database/Main.json";
-  let dataPathSub = "./Database/Sub.json";
-  
-  let des = mainDes;
-
-  let files = await fs.readdirSync(des);
-
-  let d = await fs.readFileSync(dataPath);
-  let dSub = await fs.readFileSync(dataPathSub);
-  let Data = JSON.parse(d);
-  let DataSub = JSON.parse(dSub);
-
-  // Adding the Books and other properties if its alredy not there in the files
-  // checks if it has base proerty
-  if (!Data.hasOwnProperty("Tags")) {
-    console.log("Here in the if ");
-    Data["Tags"] = [];
-  } else {
-    console.log("not comeign in here ");
-  }
-  if (!DataSub.hasOwnProperty("Tags")) {
-    console.log("Here in the if ");
-    DataSub["Tags"] = [];
-  } else {
-    console.log("not comeign in here ");
-  }
-
-  // checks if it has base proerty
-  if (!Data.hasOwnProperty("Base")) {
-    console.log("Here in the if ");
-    Data["Base"] = mainDes.replace(/\\/g, "/");
-  } else {
-    console.log("not comeign in here ");
-  }
-  if (!DataSub.hasOwnProperty("Base")) {
-    console.log("Here in the if ");
-    DataSub["Base"] = mainDes.replace(/\\/g, "/");
-  } else {
-    console.log("not comeign in here ");
-  }
-
-  // checks if has Books property
-  if (!Data.hasOwnProperty("Books")) {
-    console.log("Here in the if ");
-    Data["Books"] = [];
-  } else {
-    console.log("not comeign in here ");
-  }
-  if (!DataSub.hasOwnProperty("Books")) {
-    console.log("Here in the if ");
-    DataSub["Books"] = [];
-  } else {
-    console.log("not comeign in here ");
-  }
-
-  let bk = Data["Books"];
-  let bkSub = DataSub["Books"];
-  for (let i of files) {
-    console.log(i, "here i");
-    let book = new Book(pth, des);
-    await book.getCover(i);
-    await book.bookData(i);
-    // console.log(book.Cover, book.Chapters);
-
-    
-    let tempTwo = {
-      Name: book.Name,
-      Cover: book.Cover,
-      FolderName : i.replace('.epub', '')
-    };
-    let temp = {
-      Name: book.Name,
-      Cover: book.Cover,
-      FolderName :  i.replace('.epub', ''),
-      Chapters: book.Chapters,
-    };
-    let dont = true;
-    for (let o of bkSub) {
-      for (let c in o) {
-        if (o[c] === temp.Name) {
-          dont = false;
-        }
-      }
-    }
-    if (dont) {
-      bkSub.push(tempTwo);
-      bk.push(temp);
-    }
-  }
-  DataSub["Books"] = bkSub;
-  Data["Books"] = bk;
-  await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
-  await fs.writeFileSync(dataPath, JSON.stringify(Data));
-  res.send(pathToDes);
 });
 
 Router.listen(port, () => {
@@ -923,19 +789,19 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 
-app.whenReady().then(() => {
-  createWindow();
+// app.whenReady().then(() => {
+//   createWindow();
 
-  app.on("activate", () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-});
+//   app.on("activate", () => {
+//     // On macOS it's common to re-create a window in the app when the
+//     // dock icon is clicked and there are no other windows open.
+//     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+//   });
+// });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
-});
+// // Quit when all windows are closed, except on macOS. There, it's common
+// // for applications and their menu bar to stay active until the user quits
+// // explicitly with Cmd + Q.
+// app.on("window-all-closed", () => {
+//   if (process.platform !== "darwin") app.quit();
+// });
