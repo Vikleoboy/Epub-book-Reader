@@ -2,10 +2,11 @@ import { IonContent, IonSearchbar, ToggleCustomEvent } from "@ionic/react";
 import { useState, useRef, useEffect } from "react";
 import { BsSearch } from "react-icons/bs";
 import "../../theme/variables.css";
-export const Search = () => {
+export const Search = (props) => {
   const [clicked, setclicked] = useState(false);
   const [text, settext] = useState("");
   const inp = useRef();
+  const [word, setword] = useState("");
 
   const [themeToggle, setThemeToggle] = useState(true);
 
@@ -50,10 +51,19 @@ export const Search = () => {
     // Add any other style changes to the parent element here
   }
 
+  function handleChange(event) {
+    props.setSearchKey(event.target.value);
+  }
+  console.log(props.SearchKey);
   return (
     <div>
       <div></div>
-      <IonSearchbar animated={true} placeholder="Search"></IonSearchbar>
+      <IonSearchbar
+        value={props.SearchKey}
+        onIonInput={handleChange}
+        animated={true}
+        placeholder="Search"
+      ></IonSearchbar>
     </div>
   );
 };

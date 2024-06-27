@@ -23,7 +23,7 @@ export const Side = (props) => {
           <div className="mac-button mac-maximize"></div>
         </div>
 
-        <Search />
+        <Search SearchKey={props.SearchKey} setSearchKey={props.setSearchKey} />
 
         <MainSection setTagString={props.setTagString} allBtns={allBtns} />
         <Folders

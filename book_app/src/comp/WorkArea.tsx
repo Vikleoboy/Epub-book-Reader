@@ -29,6 +29,18 @@ export const WorkArea = (props) => {
     func();
   }, [refresh, props.TagString]);
 
+  function searchBooks(keyword) {
+    return function ser(book) {
+      return book.Name.toLowerCase().includes(keyword.toLowerCase());
+    };
+  }
+  let keyWord;
+  if (props.keyword === undefined) {
+    keyWord = "";
+  } else {
+    keyWord = props.keyword;
+  }
+
   return (
     <div className=" relative col-span-6   rounded flex flex-col  ">
       <div className="titlebar">
@@ -43,7 +55,7 @@ export const WorkArea = (props) => {
       />
 
       <div className=" h-full overflow-y-scroll overflow-x-hidden flex justify-evenly flex-wrap p-10 ">
-        {Books?.map((i) => {
+        {Books?.filter(searchBooks(keyWord)).map((i) => {
           return (
             <Book
               key={i["Name"]}
