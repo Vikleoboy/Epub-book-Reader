@@ -23,6 +23,8 @@ Welcome to the EPUB Book Reader App! This app is designed to enhance your readin
 ## Currently installiation would not work , the progress on the app
 
 ![image](https://github.com/Vikleoboy/Epub-book-Reader/assets/87757168/6c690388-2fcd-4588-bd53-4e5690a8c542)
+![image](https://github.com/Vikleoboy/Epub-book-Reader/assets/87757168/3745d516-9238-4b16-9560-56a299f68164)
+
 
 
 
