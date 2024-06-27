@@ -10,7 +10,7 @@ const Router = express();
 
 const cheerio = require("cheerio");
 const { uid } = require("uid");
-const Book = require("./book.js");
+const Book = require("epubapi");
 const unzipper = require("unzipper");
 //add new comment
 let cors = require("cors");
@@ -37,6 +37,17 @@ Router.use(function (req, res, next) {
   next();
 });
 port = 3002;
+
+let OS;
+
+var opsys = process.platform;
+if (opsys == "darwin") {
+  OS = "MacOS";
+} else if (opsys == "win32" || opsys == "win64") {
+  OS = "Windows";
+} else if (opsys == "linux") {
+  OS = "Linux";
+}
 
 let t = async () => {
   let y = await fs.existsSync("./Database");
@@ -550,7 +561,8 @@ Router.get("/getCover", async (req, res) => {
 
   let DataSub = JSON.parse(dSub);
   let Books = DataSub["Books"];
-  if (Books != []) {
+  let send = true;
+  if (Books != [] && Books) {
     for (let i of Books) {
       if (id === i["Name"] && i !== undefined) {
         try {
@@ -558,10 +570,13 @@ Router.get("/getCover", async (req, res) => {
           res.json({
             img: new Buffer(bitmap).toString("base64"),
           });
+          send = false;
         } catch (error) {
-          res.json({
-            img: "error",
-          });
+          if (send) {
+            res.json({
+              img: "error",
+            });
+          }
         }
       }
     }
@@ -625,141 +640,184 @@ Router.get("/Read", async (req, res) => {
   }
 });
 
-Router.get("/delBook", async (req, res) => {
-  const { id } = req.query;
-  console.log(id + " this is id of read ");
+// Router.get("/delBook", async (req, res) => {
+//   const { id } = req.query;
+//   console.log(id + " this is id of read ");
+
+//   let dataPath = "./Database/Main.json";
+//   let dataPathSub = "./Database/Sub.json";
+
+//   let d = await fs.readFileSync(dataPath);
+//   let dSub = await fs.readFileSync(dataPathSub);
+
+//   let DataSub = JSON.parse(dSub);
+//   let Data = JSON.parse(d);
+
+//   if (DataSub["Books"].length !== 0) {
+//     for (let i of DataSub["Books"]) {
+//       if (i["Name"] === id) {
+//         let index = DataSub["Books"].indexOf(i);
+
+//         if (index > -1) {
+//           // only splice array when item is found
+//           DataSub["Books"].splice(index, 1); // 2nd parameter means remove one item only
+//           Data["Books"].splice(index, 1);
+//         }
+
+//         await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+//         await fs.writeFileSync(dataPath, JSON.stringify(Data));
+//         res.json({ res: "Done" });
+//       }
+//     }
+//   }
+// });
+
+Router.get("/addFolder/", async (req, res) => {
+  const { path: p } = req.query;
+  // res.send(path);
+
+  let fld = fs.existsSync(p);
+  let send = false;
+  if (!fld) {
+    res.json({ res: "NVP" });
+    return;
+  }
+
+  console.log(path);
+
+  let dataPath = "./Database/Main.json";
+  let pth = p;
+  let des = mainDes;
+  try {
+    // Read the directory to get all EPUB files
+    let realPath = pth.replace(/\\/g, "/");
+    let realDes = des.replace(/\\/g, "/") + "/";
+    console.log(pth);
+    console.log(pth.replace(/\\/g, "/"), des.replace(/\\/g, "/") + "/");
+    let results = await execSync(`python ./addFolder.py  "${pth}" "${des}"`);
+    console.log(results);
+  } catch (error) {
+    console.error("Error reading directory:", error);
+  } finally {
+    res.json({ res: "Done" });
+  }
+
+  // let wrt = await fs.writeFileSync(dataPath, JSON.stringify(Data));
+});
+
+Router.get("/allBooks", async (req, res) => {
+  const { path: p } = req.query;
+
+  console.log("I HAV ENO I DEA WHATS HAPPENING ");
+
+  console.log("in the all books ");
 
   let dataPath = "./Database/Main.json";
   let dataPathSub = "./Database/Sub.json";
+  let pth = "";
+  let des = mainDes;
+  let dummy = [];
+
+  let files = await fs.readdirSync(des);
 
   let d = await fs.readFileSync(dataPath);
   let dSub = await fs.readFileSync(dataPathSub);
-
-  let DataSub = JSON.parse(dSub);
   let Data = JSON.parse(d);
+  let DataSub = JSON.parse(dSub);
 
-  if (DataSub["Books"].length !== 0) {
-    for (let i of DataSub["Books"]) {
-      if (i["Name"] === id) {
-        let index = DataSub["Books"].indexOf(i);
+  // Adding the Books and other properties if its alredy not there in the files
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    Data["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Tags")) {
+    console.log("Here in the if ");
+    DataSub["Tags"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
 
-        if (index > -1) {
-          // only splice array when item is found
-          DataSub["Books"].splice(index, 1); // 2nd parameter means remove one item only
-          Data["Books"].splice(index, 1);
+  // checks if it has base proerty
+  if (!Data.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    Data["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Base")) {
+    console.log("Here in the if ");
+    DataSub["Base"] = mainDes.replace(/\\/g, "/");
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  // checks if has Books property
+  if (!Data.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    Data["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+  if (!DataSub.hasOwnProperty("Books")) {
+    console.log("Here in the if ");
+    DataSub["Books"] = [];
+  } else {
+    console.log("not comeign in here ");
+  }
+
+  let bk = Data["Books"];
+  let bkSub = DataSub["Books"];
+  for (let i of files) {
+    let id = uid(8);
+    console.log(i, "here i");
+    let book = new Book(pth, des);
+    await book.getCover(i);
+    await book.bookData(i);
+    // console.log(book.Cover, book.Chapters);
+    let tempTwo = {
+      id: id,
+      Name: book.Name,
+      Cover: book.Cover,
+    };
+    let temp = {
+      id: id,
+      Name: book.Name,
+      Cover: book.Cover,
+      Chapters: book.Chapters,
+    };
+    let dont = true;
+    for (let o of bkSub) {
+      for (let c in o) {
+        if (o[c] === temp.Name) {
+          dont = false;
         }
-
-        await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
-        await fs.writeFileSync(dataPath, JSON.stringify(Data));
-        res.json({ res: "Done" });
       }
     }
+    if (dont) {
+      bkSub.push(tempTwo);
+      bk.push(temp);
+      dummy.push({ filePath: i, id: id });
+    }
   }
+  DataSub["Books"] = bkSub;
+  Data["Books"] = bk;
+  let tp = { currentBooks: dummy };
+  await fs.writeFileSync("./temp.json", JSON.stringify(tp));
+  await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+  await fs.writeFileSync(dataPath, JSON.stringify(Data));
+  res.json({ res: "Done" });
 });
 
-Router.get("/addFolder", async (req, res) => {
-  const { path: p } = req.query;
-  let ifsend = true;
-
-  try {
-    if (!fs.existsSync(p)) {
-      res.json({ res: "NVP" });
-      return;
-    }
-
-    console.log("Input path:", p);
-
-    const dataPath = "./Database/Main.json";
-    const dataPathSub = "./Database/Sub.json";
-    const des = mainDes;
-
-    let pth = p.replace(/"/g, "");
-    console.log("Sanitized path:", pth);
-
-    // Placeholder for your Python script call
-    try {
-      const results = await execSync(
-        `python ./addFolder.py "${pth}" "${mainDes}"`
-      );
-      console.log("Python script results:", results.toString());
-    } catch (error) {
-      console.error("Error executing Python script:", error);
-    }
-
-    let d = await fs.readFileSync(dataPath, "utf8");
-    let dSub = await fs.readFileSync(dataPathSub, "utf8");
-    let tm = await fs.readFileSync("./temp.json");
-    let temp = JSON.parse(tm);
-    let Data = JSON.parse(d);
-    let DataSub = JSON.parse(dSub);
-
-    let dummy = [];
-
-    let files = await fs.readdirSync(des);
-
-    // Ensure necessary properties exist
-    if (!Data.Tags) Data.Tags = [];
-    if (!DataSub.Tags) DataSub.Tags = [];
-    if (!Data.Base) Data.Base = des.replace(/\\/g, "/");
-    if (!DataSub.Base) DataSub.Base = des.replace(/\\/g, "/");
-    if (!Data.Books) Data.Books = [];
-    if (!DataSub.Books) DataSub.Books = [];
-
-    for (let i of files) {
-      console.log("Processing file:", i);
-      let id = uid(8);
-      let book = new Book(pth, des);
-      await book.getCover(i);
-      await book.bookData(i);
-
-      let tempTwo = {
-        id,
-        Name: book.Name,
-        Cover: book.Cover,
-        FolderName: i.replace(".epub", ""),
-      };
-      let temp = {
-        ...tempTwo,
-        Chapters: book.Chapters,
-      };
-
-      let exists = DataSub.Books.some((o) => o.Name === temp.Name);
-      if (!exists) {
-        DataSub.Books.push(tempTwo);
-        Data.Books.push(temp);
-        dummy.push(id);
-
-        // try {
-        //   const results = await execSync(
-        //     `python ./addBook.py "${path.join(
-        //       pth,
-        //       i
-        //     )}.epub" "${mainDes}" "${epubFolder}" "${id}"`
-        //   );
-
-        //   console.log("Book added:", results.toString());
-        // } catch (error) {
-        //   console.error("Error executing addBook.py:", error);
-        // }
-      }
-    }
-
-    let tp = { currentBooks: dummy };
-
-    await fs.writeFileSync("./temp.json", JSON.stringify(tp));
-    await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
-    await fs.writeFileSync(dataPath, JSON.stringify(Data));
-
-    ifsend = false;
-    res.json({ res: "Done" });
-  } catch (error) {
-    console.error("Error in route handler:", error);
-    res.json({ res: "Error" });
-  } finally {
-    if (ifsend) {
-      res.json({ res: "Done" });
-    }
-  }
+Router.get("/serveEpub", async (req, res) => {
+  const { path: p2folder } = req.query;
+  console.log(p2folder);
+  let r = await execSync(`python ./addEpubFolder.py "${p2folder}"`);
+  console.log(r.toString());
+  res.json({ res: "Done" });
+  console.log("Yooo");
 });
 
 Router.listen(port, () => {

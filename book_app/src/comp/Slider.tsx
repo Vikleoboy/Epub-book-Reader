@@ -71,10 +71,11 @@ export const ModaleAddFolder = (props) => {
       setloading(false);
     }
     console.log(d.data.res);
-    if (d.data.res === "Done") {
-      setloading(true);
-    }
-
+    // if (d.data.res === "Done") {
+    //   setloading(false);
+    // }
+    await axios.get(url + "allBooks?path=" + path);
+    await axios.get(url + "serveEpub?path=" + path);
     console.log(d.data.res);
     if (d.data.res === "Done") {
       props.setAddModle(false);
