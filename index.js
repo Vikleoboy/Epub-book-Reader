@@ -10,7 +10,7 @@ const Router = express();
 
 const cheerio = require("cheerio");
 const { uid } = require("uid");
-const Book = require("epubapi");
+const Book = require("./book.js");
 const unzipper = require("unzipper");
 //add new comment
 let cors = require("cors");
@@ -420,14 +420,14 @@ Router.post("/addBook", async (req, res) => {
     // templets for adding the book for each databse
     let tempTwo = {
       id: id,
-      Name: book.Name,
+      Name: book.Name.replace(".", ""),
       Cover: book.Cover,
       index: bkSub.length,
       base: des.replace(/\\/g, "/"),
     };
     let temp = {
       id: id,
-      Name: book.Name,
+      Name: book.Name.replace(".", ""),
       Cover: book.Cover,
       Chapters: book.Chapters,
       base: des.replace(/\\/g, "/"),
@@ -803,12 +803,12 @@ Router.get("/allBooks", async (req, res) => {
     // console.log(book.Cover, book.Chapters);
     let tempTwo = {
       id: id,
-      Name: book.Name,
+      Name: book.Name.replace(".", ""),
       Cover: book.Cover,
     };
     let temp = {
       id: id,
-      Name: book.Name,
+      Name: book.Name.replace(".", ""),
       Cover: book.Cover,
       Chapters: book.Chapters,
     };

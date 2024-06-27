@@ -82,6 +82,7 @@ class Book {
       k.pop();
       let m = k.join(".");
       k = [m];
+      ``;
     }
 
     // console.log(flds , 'this here is were ')
@@ -91,7 +92,7 @@ class Book {
     // flds.pop();
 
     let opPresent = flds.filter(isOpf);
-
+    console.log(opPresent, "here");
     function isOpf(file) {
       return path.basename(file).includes(".opf");
     }
@@ -99,9 +100,8 @@ class Book {
     for (let f of flds) {
       let know = await fs.lstatSync(path.join(this.des, k[0], f)).isDirectory();
 
-      let insideFiles = [];
       if (know) {
-        insideFiles = await fs.readdirSync(path.join(bookFolder, f));
+        var insideFiles = await fs.readdirSync(path.join(bookFolder, f));
         insideFiles = insideFiles.filter((e) => e !== ".DS_Store");
         console.log(insideFiles.filter(isOpf));
       }
@@ -158,11 +158,8 @@ class Book {
               return url;
             } else if (nm === undefined) {
               let cov = $("#cover").attr("href");
-              console.log(cov, "here2");
-
               if (cov !== undefined) {
-                let realLink = path.join(this.des, k[0], f, cov);
-                this.Cover = realLink.replaceAll(/\\/g, "/");
+                this.Cover = cov;
               } else {
                 this.Cover = "NotFound";
               }
@@ -224,8 +221,7 @@ class Book {
           } else if (nm === undefined) {
             let cov = $("#cover").attr("href");
             if (cov !== undefined) {
-              let realLink = path.join(this.des, k[0], cov);
-              this.Cover = realLink.replaceAll(/\\/g, "/");
+              this.Cover = cov;
             } else {
               this.Cover = "NotFound";
             }
@@ -367,22 +363,18 @@ class Book {
 //   "/Users/pablo/Downloads/Epub-book-Reader-EPubJS-Integration/books"
 // );
 
-// let bk = new Book(
-//   "C:\\Users\\vikle\\Documents\\GitHubProjects\\Epub-book-Reader\\books",
-//   "C:\\Users\\vikle\\Documents\\GitHubProjects\\Epub-book-Reader\\books"
-// );
-// // // // // await bk.init();
-// // // Matt Parker - Humble Pi_ A Comedy of Maths Errors-Penguin UK (2019)
-// async function somethign() {
-//   let n = await bk.getCover(
-//     "Matt Parker - Humble Pi_ A Comedy of Maths Errors-Penguin UK (2019)"
-//   );
-//   await bk.bookData(
-//     "Matt Parker - Humble Pi_ A Comedy of Maths Errors-Penguin UK (2019)"
-//   );
-//   console.log(bk.Name, bk.Cover, " here");
-// }
+let bk = new Book(
+  "C:\\Users\\vikle\\Documents\\GitHubProjects\\Epub-book-Reader\\books",
+  "C:\\Users\\vikle\\Documents\\GitHubProjects\\Epub-book-Reader\\books"
+);
+// // // await bk.init();
+// Matt Parker - Humble Pi_ A Comedy of Maths Errors-Penguin UK (2019)
+async function somethign() {
+  let n = await bk.getCover("something");
+  await bk.bookData("something");
+  console.log(bk.Name, bk.Cover, bk.Chapters, " here");
+}
 
-// somethign();
+somethign();
 
 module.exports = Book;
