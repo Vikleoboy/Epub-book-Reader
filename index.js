@@ -66,6 +66,10 @@ let t = async () => {
   if (!epubFolder) {
     await fs.mkdirSync("./epubBooks");
   }
+  let temp = await fs.existsSync("./temp.json");
+  if (!temp) {
+    await fs.writeFileSync("./temp.json", "{}");
+  }
 };
 
 t();
