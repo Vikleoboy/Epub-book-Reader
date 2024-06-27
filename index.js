@@ -401,9 +401,17 @@ Router.post("/addBook", async (req, res) => {
 
     let id = uid(8);
 
-    let results = await execSync(
-      `python ./addBook.py  "${pth}" "${mainDes}" "${epubFolder}" "${id}"`
-    ); //extracts the file
+    //extracts the file
+    let results;
+    if (OS === "MacOS") {
+      results = await execSync(
+        `python3 ./addBook.py  "${pth}" "${mainDes}" "${epubFolder}" "${id}"`
+      );
+    } else if (OS === "Windows") {
+      results = await execSync(
+        `python ./addBook.py  "${pth}" "${mainDes}" "${epubFolder}" "${id}"`
+      );
+    }
 
     await book.getCover(n);
     await book.bookData(n);
@@ -644,37 +652,37 @@ Router.get("/Read", async (req, res) => {
   }
 });
 
-// Router.get("/delBook", async (req, res) => {
-//   const { id } = req.query;
-//   console.log(id + " this is id of read ");
+Router.get("/delBook", async (req, res) => {
+  const { id } = req.query;
+  console.log(id + " this is id of read ");
 
-//   let dataPath = "./Database/Main.json";
-//   let dataPathSub = "./Database/Sub.json";
+  let dataPath = "./Database/Main.json";
+  let dataPathSub = "./Database/Sub.json";
 
-//   let d = await fs.readFileSync(dataPath);
-//   let dSub = await fs.readFileSync(dataPathSub);
+  let d = await fs.readFileSync(dataPath);
+  let dSub = await fs.readFileSync(dataPathSub);
 
-//   let DataSub = JSON.parse(dSub);
-//   let Data = JSON.parse(d);
+  let DataSub = JSON.parse(dSub);
+  let Data = JSON.parse(d);
 
-//   if (DataSub["Books"].length !== 0) {
-//     for (let i of DataSub["Books"]) {
-//       if (i["Name"] === id) {
-//         let index = DataSub["Books"].indexOf(i);
+  if (DataSub["Books"].length !== 0) {
+    for (let i of DataSub["Books"]) {
+      if (i["Name"] === id) {
+        let index = DataSub["Books"].indexOf(i);
 
-//         if (index > -1) {
-//           // only splice array when item is found
-//           DataSub["Books"].splice(index, 1); // 2nd parameter means remove one item only
-//           Data["Books"].splice(index, 1);
-//         }
+        if (index > -1) {
+          // only splice array when item is found
+          DataSub["Books"].splice(index, 1); // 2nd parameter means remove one item only
+          Data["Books"].splice(index, 1);
+        }
 
-//         await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
-//         await fs.writeFileSync(dataPath, JSON.stringify(Data));
-//         res.json({ res: "Done" });
-//       }
-//     }
-//   }
-// });
+        await fs.writeFileSync(dataPathSub, JSON.stringify(DataSub));
+        await fs.writeFileSync(dataPath, JSON.stringify(Data));
+        res.json({ res: "Done" });
+      }
+    }
+  }
+});
 
 Router.get("/addFolder/", async (req, res) => {
   const { path: p } = req.query;
@@ -690,16 +698,28 @@ Router.get("/addFolder/", async (req, res) => {
   console.log(path);
 
   let dataPath = "./Database/Main.json";
-  let pth = p;
+  let pth = p.replace(/"/g, "");
   let des = mainDes;
   try {
     // Read the directory to get all EPUB files
     let realPath = pth.replace(/\\/g, "/");
     let realDes = des.replace(/\\/g, "/") + "/";
-    console.log(pth);
-    console.log(pth.replace(/\\/g, "/"), des.replace(/\\/g, "/") + "/");
-    let results = await execSync(`python ./addFolder.py  "${pth}" "${des}"`);
-    console.log(results);
+
+    try {
+      let results;
+      if (OS === "MacOS") {
+        const results = await execSync(
+          `python3 ./addFolder.py "${pth}" "${mainDes}"`
+        );
+      } else if (OS === "Windows") {
+        const results = await execSync(
+          `python ./addFolder.py "${pth}" "${mainDes}"`
+        );
+      }
+      console.log("Python script results:", results.toString());
+    } catch (error) {
+      console.error("Error executing Python script:", error);
+    }
   } catch (error) {
     console.error("Error reading directory:", error);
   } finally {
@@ -818,8 +838,21 @@ Router.get("/allBooks", async (req, res) => {
 Router.get("/serveEpub", async (req, res) => {
   const { path: p2folder } = req.query;
   console.log(p2folder);
-  let r = await execSync(`python ./addEpubFolder.py "${p2folder}"`);
-  console.log(r.toString());
+
+  try {
+    let results;
+    if (OS === "MacOS") {
+      const results = await execSync(
+        `python3 ./addEpubFolder.py "${p2folder}"`
+      );
+    } else if (OS === "Windows") {
+      const results = await execSync(`python ./addEpubFolder.py "${p2folder}"`);
+    }
+    console.log("Python script results:", results.toString());
+  } catch (error) {
+    console.error("Error executing Python script:", error);
+  }
+
   res.json({ res: "Done" });
   console.log("Yooo");
 });
