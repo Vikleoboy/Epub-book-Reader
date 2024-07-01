@@ -44,8 +44,8 @@ export const WorkArea = (props) => {
   return (
     <div className=" relative col-span-6   rounded flex flex-col  ">
       <div className="titlebar">
-        <p className=" pt-20 px-11    text-slate-900 dark:text-gray-300 text-5xl">
-        Axiom Library
+        <p className=" pt-20 px-14    text-slate-900 dark:text-gray-300 text-6xl">
+          Library
         </p>
       </div>
       <Slider
@@ -74,9 +74,6 @@ export const WorkArea = (props) => {
             </div>
           ))}
       </div>
-      <p className="text-lg text-center text-gray-500 dark:text-gray-400 mb-[10px]">No Books Added 
-      </p>
-      <p className="text-lg text-center text-blue-500 dark:text-blue-400 mb-[300px]">Upload a Book Now</p>
     </div>
   );
 };

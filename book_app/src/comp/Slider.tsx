@@ -13,11 +13,9 @@ export const Slider = (props) => {
 
   return (
     <>
-      <div className="book   mx-8  flex justify-between items-center bg-gray-100 dark:bg-gray-900 shadow-inner rounded-lg  mt-4 border dark:border-gray-800 sticky bottom  px-8  py-5">
+      <div className="   mx-8  flex justify-between items-center bg-gray-100 dark:bg-gray-900 shadow-inner rounded-lg  mt-4 border dark:border-gray-800 sticky bottom  px-8  py-5">
         <div className="   flex justify-center items-center ">
-          { 
-            <p className = "book-display mr-4"> Book Display Size   </p>
-          }
+          {/* <p>Size</p> */}
 
           <input
             id="default-range"
@@ -180,7 +178,7 @@ export const ModaleAddBook = (props) => {
       {!loading && (
         <div className=" p-10 dark:bg-gray-800/80 bg-gray-300 flex  flex-col justify-center items-center backdrop-blur-sm  rounded-lg p-10 px-7 space-y-7">
           <p className="opacity-100 text-3xl text-gray-300 ">
-            Upload the Book
+            Select the Folder
           </p>
           <div className=" flex flex-col space-y-2">
             <input
