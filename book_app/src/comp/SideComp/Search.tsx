@@ -56,31 +56,20 @@ export const Search = (props) => {
   }
   console.log(props.SearchKey);
   return (
+    <div className = "search-bar w-[170px] ml-[-11px]">
     <div>
-      <div></div>
-      <IonSearchbar
-        value={props.SearchKey}
-        onIonInput={handleChange}
-        animated={true}
-        placeholder="Search"
-      ></IonSearchbar>
-    </div>
+  <div></div>
+  <IonSearchbar
+    value={props.SearchKey}
+    onIonInput={handleChange}
+    animated={true}
+    placeholder="Search"
+    style={{
+      width: '100%' 
+    }}
+  ></IonSearchbar>
+</div>
+</div>
+
   );
 };
-
-// <div
-// tabIndex={10}
-// id="parent"
-// className="relative     w-full text-lg   flex space-x-2 items-center"
-// >
-// <BsSearch className=" text-gray-400 absolute left-4" />
-// <input
-//   tabIndex={1}
-//   className="  py-1 pl-6 text-xl transition-all duration-200  dark:focus:outline-gray-400 dark:hover:outline-gray-600 rounded-md ch w-full bg-gray-200 dark:bg-gray-800 pl-4 text-gray-500 dark:text-gray-400   placeholder-gray-500 dark:placeholder-gray-500 outline-none   "
-//   placeholder="  Search"
-//   ref={inp}
-//   type="text"
-//   name=""
-//   id="child"
-// />
-// </div>

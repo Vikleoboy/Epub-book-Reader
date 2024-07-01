@@ -250,7 +250,7 @@ const EpubViewer = ({ url }) => {
                   {/* Add Bookmarks Button */}
                   {selectedTab === 1 && (
                     <div className=" mt-2 flex justify-between items-center">
-                      <p className=" text-xl pl-2">BookMarks</p>
+                      <p className=" text-xl pl-2">Bookmarks</p>
                       <button
                         className=" bg-gray-200 text-gray-600 px-2 py-1 rounded-md shadow hover:bg-gray-300 "
                         onClick={() => setbookMarkModal(true)} // Replace with actual functionality
