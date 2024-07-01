@@ -2,18 +2,24 @@ import sys
 import os
 import zipfile
 import shutil
-
-arg = sys.argv[1:]
-filePath = arg[0]
-dest = arg[1]
-epubFolder = arg[2]
-id = arg[3]
+import uuid
+import secrets
+import string
 
 
-print(os.path.isfile(filePath), os.path.isdir(dest))
+def generate_unique_id(length=6):
+    # Define the alphabet: you can customize this
+    alphabet = string.ascii_letters + string.digits
+
+    # Generate a random string of the specified length
+    unique_id = "".join(secrets.choice(alphabet) for _ in range(length))
+
+    return unique_id
 
 
-def AddFolder():
+def AddBook(filePath, dest, epubFolder):
+    id = generate_unique_id(8)
+    print(os.path.isfile(filePath), dest)
     try:
         if (
             filePath.endswith(".epub")
@@ -33,5 +39,7 @@ def AddFolder():
                 zip_ref.extractall(destFolder)
 
             os.remove(destFolder + ".zip")
-    except:
-        print("yo bro problem here ")
+
+            return "done"
+    except Exception as error:
+        print("yo bro problem here ", error)
