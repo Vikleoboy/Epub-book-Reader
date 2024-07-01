@@ -51,7 +51,7 @@ export const MainSection = (props) => {
           <p className=" text-red-400 ">
             <IoBookmark />
           </p>
-          <p className=" text-lg">Bookmarks</p>
+          <p className=" text-lg">BookMarks</p>
         </div>
       </div>
     </div>
