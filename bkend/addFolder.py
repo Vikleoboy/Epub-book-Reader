@@ -4,6 +4,7 @@ import zipfile
 import shutil
 import secrets
 import string
+import json
 
 
 def generate_unique_id(length=6):
@@ -14,6 +15,22 @@ def generate_unique_id(length=6):
     unique_id = "".join(secrets.choice(alphabet) for _ in range(length))
 
     return unique_id
+
+
+def ReadData(mode="b"):
+    with open("Database/Sub.json", "r") as Sub:
+        SubData = json.load(Sub)
+        SubData = initData(SubData)
+    with open("Database/Main.json", "r") as Main:
+        MainData = json.load(Main)
+        MainData = initData(MainData)
+    print(SubData, "here")
+    if mode == "b":
+        return {"Sub": SubData, Main: MainData}
+    elif mode == "s":
+        return {"Sub": SubData}
+    elif mode == "m":
+        return {"Main": MainData}
 
 
 def AddFolder(pth, dest, epubDes):
@@ -53,3 +70,42 @@ def AddFolder(pth, dest, epubDes):
         except:
             continue
             print("yo problem ")
+
+
+def initData(Data):
+    if not "Books" in Data:
+        Data["Books"] = []
+    if not "Tags" in Data:
+        Data["Tags"] = []
+    return Data
+
+
+def writeData(data, pth):
+    ex = os.path.exists(pth)
+    if ex:
+        with open(pth, "w") as json_file:
+            json.dump(data, json_file, indent=4)
+    return
+
+
+def bookTemp(id, name, cover, base, chapters=None):
+    if chapters == None:
+        return {"id": id, "Name": "name", "Cover": cover, "base": base, "Tags": []}
+    else:
+        return {
+            "id": id,
+            "Name": name,
+            "Cover": cover,
+            "base": base,
+            "Tags": [],
+            "Chapters": chapters,
+        }
+
+
+d = ReadData("s")["Sub"]
+
+books = d["Books"]
+books.append(bookTemp("sdf", "Vivek", "viverk", "/sdf"))
+d["Books"] = books
+writeData(d, "Database/Sub.json")
+print(ReadData("s"))
