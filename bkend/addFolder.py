@@ -53,9 +53,12 @@ def AddFolder(pth, dest, epubDes):
 
                 os.remove(destFolder + ".zip")
 
-                book = Book("", dest)
-                book.get_cover(id)
-                book.book_data(id)
+                try:
+                    book = Book("", dest)
+                    book.get_cover(id)
+                    book.book_data(id)
+                except Exception as error:
+                    print("ERROR ", error)
                 # Logic to see if the book alredy exits in the Database
                 # can add logic with orgin folder which will be better but i am leaveing it for now
                 add = True
@@ -76,8 +79,8 @@ def AddFolder(pth, dest, epubDes):
                     pathlib.Path.unlink(os.path.join(epubDes) + ".epub")
 
         except:
-            continue
             print("yo problem ")
+            continue
         rd["Sub"]["Books"] = dum
         rd["Main"]["Books"] = dum2
         writeData(rd["Sub"], "Database/Sub.json")

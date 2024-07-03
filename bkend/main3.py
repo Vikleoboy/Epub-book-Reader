@@ -1,23 +1,17 @@
-from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import JSONResponse, FileResponse
-from fastapi.middleware.cors import CORSMiddleware
-import os
-import json
-import base64
+from flask import Flask, send_from_directory, abort, request, jsonify
 from addFolder import AddFolder
 from addBook import AddBook, writeData
+import os
 from func import intalise, ReadData
+import base64
+from flask_cors import CORS
 
-app = FastAPI()
 
-# CORS middleware to allow all origins
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Adjust this based on your actual requirements
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
+app = Flask(__name__)
+CORS(app)
+
+app.debug = True
+
 
 mainDes = os.path.abspath("books")
 epubFolderDes = os.path.abspath("epubBooks")
@@ -30,12 +24,16 @@ def safe_path(directory, filename):
     safe_path = os.path.abspath(os.path.join(directory, filename))
     # Ensure the path is within the directory
     if not safe_path.startswith(os.path.abspath(directory)):
-        raise HTTPException(status_code=404, detail="File not found")
+        abort(404)
     return safe_path
 
 
-@app.post("/delBookTag")
-async def del_book_tag(req_data: dict):
+# Main Routes
+
+
+@app.route("/delBookTag", methods=["POST"])
+def del_book_tag():
+    req_data = request.get_json()
     id = req_data.get("id")
     Tag = req_data.get("Tag")
 
@@ -54,17 +52,21 @@ async def del_book_tag(req_data: dict):
     try:
         writeData(data_sub, "Database/Sub.json")
         writeData(data, "Database/Main.json")
-        return {"res": "Tag deleted successfully"}
+        return jsonify({"res": "Tag added successfully"}), 200
     except Exception:
-        raise HTTPException(status_code=404, detail="Tag not found")
+        return jsonify({"res": "NotFound"}), 404
 
 
-@app.get("/delTag")
-async def del_tag(tagName: str):
+@app.route("/delTag", methods=["GET"])
+def del_tag():
+    tagName = request.args.get("tagName")
+
     bk = ReadData("b")
     data_sub = bk["Sub"]
     data_main = bk["Main"]
 
+    # Add the tag if it doesn't already exist
+    print(data_sub)
     if tagName in data_sub["Tags"]:
         data_main["Tags"].remove(tagName)
         data_sub["Tags"].remove(tagName)
@@ -72,17 +74,20 @@ async def del_tag(tagName: str):
         # Save the updated JSON data back to the files
         writeData(data_sub, "Database/Sub.json")
         writeData(data_main, "Database/Main.json")
-        return {"res": "Done"}
+        return jsonify({"res": "Done"}), 200
     else:
-        return {"res": "NVP"}
+        return jsonify({"res": "NVP"}), 200
 
 
-@app.get("/addTag")
-async def add_tag(tagName: str):
+@app.route("/addTag", methods=["GET"])
+def add_tag():
+    tagName = request.args.get("tagName")
+
     bk = ReadData("b")
     data_sub = bk["Sub"]
     data_main = bk["Main"]
 
+    # Add the tag if it doesn't already exist
     if tagName and tagName not in data_sub["Tags"]:
         data_main["Tags"].append(tagName)
         data_sub["Tags"].append(tagName)
@@ -90,13 +95,14 @@ async def add_tag(tagName: str):
         # Save the updated JSON data back to the files
         writeData(data_sub, "Database/Sub.json")
         writeData(data_main, "Database/Main.json")
-        return {"res": "Done"}
+        return jsonify({"res": "Done"}), 200
     else:
-        return {"res": "NVP"}
+        return jsonify({"res": "NVP"}), 200
 
 
-@app.post("/addBookTag")
-async def add_book_tag(req_data: dict):
+@app.route("/addBookTag", methods=["POST"])
+def add_book_tag():
+    req_data = request.get_json()
     id = req_data.get("id")
     Tag = req_data.get("Tag")
 
@@ -115,13 +121,14 @@ async def add_book_tag(req_data: dict):
     try:
         writeData(data_sub, "Database/Sub.json")
         writeData(data, "Database/Main.json")
-        return {"res": "Tag added successfully"}
+        return jsonify({"res": "Tag added successfully"}), 200
     except Exception:
-        raise HTTPException(status_code=404, detail="Tag not found")
+        return jsonify({"res": "NotFound"}), 404
 
 
-@app.get("/Read")
-async def read(id: str):
+@app.route("/Read", methods=["GET"])
+def read():
+    id = request.args.get("id")
     print(f"{id} this is id of read ")
 
     # Read and parse the JSON files
@@ -132,46 +139,50 @@ async def read(id: str):
             if book.get("Name") == id:
                 book_id = book.get("id")
 
-                return {"url": f"http://localhost:3002/epubBooks/{book_id}.epub"}
+                return jsonify(
+                    {"url": f"http://localhost:3002/epubBooks/{book_id}.epub"}
+                )
 
-    raise HTTPException(status_code=404, detail="Book not found")
+    return jsonify({"error": "Book not found"}), 404
 
 
-@app.get("/getCover")
-async def get_cover(id: str):
+@app.route("/getCover", methods=["GET"])
+def get_cover():
+    book_id = request.args.get("id")
+
     # Read and parse the JSON file
     bk = ReadData("s")["Sub"]
 
     books = bk.get("Books", [])
 
     for book in books:
-        if id == book.get("id") and book is not None:
+        if book_id == book.get("id") and book is not None:
             cover_path = book.get("Cover")
             if cover_path and os.path.exists(cover_path):
                 try:
                     with open(cover_path, "rb") as cover_file:
                         bitmap = cover_file.read()
                         img_base64 = base64.b64encode(bitmap).decode("utf-8")
-                        return {"img": img_base64}
+                        return jsonify({"img": img_base64})
                 except Exception as e:
-                    raise HTTPException(
-                        status_code=500, detail="Error reading cover image"
-                    )
+                    return jsonify({"img": "error"}), 500
 
-    raise HTTPException(status_code=404, detail="Cover not found")
+    return jsonify({"img": "error"}), 404
 
 
-@app.get("/getTags")
-async def get_main_tags():
+@app.route("/getTags", methods=["GET"])
+def getMainTags():
+
     # Read and parse the JSON file
     bk = ReadData("s")["Sub"]
 
     Tags = bk.get("Tags", [])
-    return {"Tags": Tags}
+    return jsonify({"Tags": Tags})
 
 
-@app.get("/getBookTags")
-async def get_book_tags(id: str):
+@app.route("/getBookTags", methods=["GET"])
+def getBookTags():
+    id = request.args.get("id")
     # Read and parse the JSON file
     bk = ReadData("s")["Sub"]
 
@@ -179,60 +190,69 @@ async def get_book_tags(id: str):
 
     for book in books:
         if book.get("id") == id:
-            return {"Tags": book.get("Tags")}
+            return jsonify({"Tags": book.get("Tags")})
 
-    raise HTTPException(status_code=404, detail="Book not found")
+    return jsonify({"Tags": "NotFound"})
 
 
-@app.get("/home")
-async def home(tag: str = None):
+@app.route("/home", methods=["GET"])
+def home():
+    tag = request.args.get("Tag")
+
     # Read and parse the JSON file
     bk = ReadData("s")["Sub"]
 
     books = bk.get("Books", [])
 
-    if tag:
-        books = [book for book in books if tag in book.get("Tags", [])]
-
     if books:
-        return {"info": books}
+        return jsonify({"info": books})
     else:
-        raise HTTPException(status_code=404, detail="No books found")
+        return jsonify({"info": "error"}), 404
 
 
-@app.get("/addFolder")
-async def add_folder(path: str):
-    path = path.replace('"', "")
-    print(path, "hi")
-    AddFolder(path, mainDes, epubFolderDes)
-    return path
+@app.route("/addFolder")
+def Folder():
+    pathfolder = request.args.get("path")
+    pathfolder = pathfolder.replace('"', "")
+    print(pathfolder, "hi")
+    AddFolder(pathfolder, mainDes, epubFolderDes)
+    return pathfolder
 
 
-@app.get("/addBook")
-async def add_book(path: str):
-    file = path.replace('"', "")
+@app.route("/addBook")
+def addBook():
+    file = request.args.get("path")
+    file = file.replace('"', "")
     print(file)
     AddBook(file, mainDes, epubFolderDes)
     return file
 
 
-@app.get("/")
-async def hello_world():
+@app.route("/")
+def hello_world():
     print("say hello")
-    return {"message": "Hello, World!"}
+    return "<p>Hello, World!</p>"
 
 
-@app.get("/epubBooks/{filename}")
-async def serve_epub_books(filename: str):
+# @app.route("/books/<path:filename>")
+# def serve_books(filename):
+#     try:
+#         # Ensure the file path is safe
+#         safe_file_path = safe_path(mainDes, filename)
+#         return send_from_directory(mainDes, filename)
+#     except FileNotFoundError:
+#         abort(404)
+
+
+@app.route("/epubBooks/<path:filename>")
+def serve_epub_books(filename):
     try:
         # Ensure the file path is safe
         safe_file_path = safe_path(epubFolderDes, filename)
-        return FileResponse(safe_file_path)
+        return send_from_directory(epubFolderDes, filename)
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="File not found")
+        abort(404)
 
 
 if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="localhost", port=3002)
+    app.run(threaded=True, host="localhost", port=3002)

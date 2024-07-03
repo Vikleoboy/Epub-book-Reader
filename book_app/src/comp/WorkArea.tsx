@@ -31,7 +31,7 @@ export const WorkArea = (props) => {
 
   function searchBooks(keyword) {
     return function ser(book) {
-      return book.Name.toLowerCase().includes(keyword.toLowerCase());
+      return book.Name?.toLowerCase().includes(keyword.toLowerCase());
     };
   }
   let keyWord;
