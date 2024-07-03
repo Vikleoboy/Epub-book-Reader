@@ -17,19 +17,28 @@ print("Arguments are:", sys.argv[1:])
 AllFile = os.listdir(fil)
 
 
+def withoutDs(file) : 
+    return '.epub' in file
+
+
 print(fil, dest)
-for fl in AllFile:
+m = filter(withoutDs,AllFile)
+
+for fl in AllFile :
     try : 
         filePath = os.path.join(fil, fl)
-        if filePath.endswith('.epub'):
-            print(fl, filePath)
+        
+            
         if filePath.endswith('.epub') and os.path.isfile(filePath) and os.path.isdir(dest):
             fileName = os.path.basename(filePath)
             fileName = fileName.replace('.epub', '')
             destFolder = os.path.join(dest, fileName)
             
-            print(filePath, destFolder + ".zip")
-            shutil.copy(filePath, destFolder + ".zip")
+           
+            try : 
+                shutil.copy(filePath, destFolder + ".zip")
+            except:
+                print('error')
             
             # with open(fil, 'r') as src, open(k + ".zip", 'w') as dst:
             #     shutil.copyfileobj(fil, k + ".zip")
@@ -37,7 +46,10 @@ for fl in AllFile:
             with zipfile.ZipFile(destFolder + ".zip", 'r') as zip_ref:
                 zip_ref.extractall(destFolder)
 
-            os.remove(destFolder + ".zip")
+            try:
+                os.remove(destFolder + ".zip")
+            except:
+                print('error in f')
     except :
         continue
         print('yo problem ')

@@ -684,39 +684,49 @@ Router.get("/delBook", async (req, res) => {
   }
 });
 
-Router.get("/addFolder/", async (req, res) => {
+Router.get("/addFolder", async (req, res) => {
   const { path: p } = req.query;
   // res.send(path);
 
-  let fld = fs.existsSync(p);
+  let fld = await fs.existsSync(p);
   let send = false;
   if (!fld) {
     res.json({ res: "NVP" });
     return;
   }
 
-  console.log(path);
+  console.log(p);
 
   let dataPath = "./Database/Main.json";
   let pth = p.replace(/"/g, "");
   let des = mainDes;
+
   try {
     // Read the directory to get all EPUB files
     let realPath = pth.replace(/\\/g, "/");
     let realDes = des.replace(/\\/g, "/") + "/";
-
+    console.log("here i am ");
     try {
       let results;
       if (OS === "MacOS") {
-        const results = await execSync(
+        results = await execSync(
           `python3 ./addFolder.py "${pth}" "${mainDes}"`
         );
       } else if (OS === "Windows") {
-        const results = await execSync(
-          `python ./addFolder.py "${pth}" "${mainDes}"`
-        );
+        console.log("in here ", mainDes);
+        results = await execSync(`node some.js`, {
+          maxBuffer: 1024 * 1024 * 10,
+        });
+        // execSync(
+        //   `python addFolder.py "${"D:\\books2"}" "C:\\Users\\vikle\\Documents\\GitHubProjects\\Epub-book-Reader\\books" `,
+        //   {
+        //     maxBuffer: 1024 * 1024 * 10,
+        //   }
+        // );
+        console.log("python script results:");
+      } else {
+        ("geting nothing");
       }
-      console.log("Python script results:", results.toString());
     } catch (error) {
       console.error("Error executing Python script:", error);
     }
@@ -884,19 +894,19 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 
-// app.whenReady().then(() => {
-//   createWindow();
+app.whenReady().then(() => {
+  createWindow();
 
-//   app.on("activate", () => {
-//     // On macOS it's common to re-create a window in the app when the
-//     // dock icon is clicked and there are no other windows open.
-//     if (BrowserWindow.getAllWindows().length === 0) createWindow();
-//   });
-// });
+  app.on("activate", () => {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
 
-// // Quit when all windows are closed, except on macOS. There, it's common
-// // for applications and their menu bar to stay active until the user quits
-// // explicitly with Cmd + Q.
-// app.on("window-all-closed", () => {
-//   if (process.platform !== "darwin") app.quit();
-// });
+// Quit when all windows are closed, except on macOS. There, it's common
+// for applications and their menu bar to stay active until the user quits
+// explicitly with Cmd + Q.
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});

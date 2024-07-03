@@ -17,25 +17,28 @@ export const Book = (props) => {
   const [bookTags, setbookTags] = useState([]);
   useEffect(() => {
     let m = async () => {
-      let bk = await axios.get(baseUrl + "getCover?id=" + props.bok?.Name);
-
-      let T = await axios.get(baseUrl + "getTags");
-      let TB = await axios.get(
-        baseUrl + `getBookTags?tagName=${props.bok?.Name}`
-      );
-      setTags(T.data.Tags);
-      setbookTags(TB.data.Tags);
+      let bk = await axios.get(baseUrl + "getCover?id=" + props.bok?.id);
 
       // const img = new Blob([bk.data]);
       // const url = URL.createObjectURL(img);
       // console.log(url);
       setCover(bk.data.img);
+      // console.log(bk.data.img);
+
+      let T = await axios.get(baseUrl + "getTags");
+      let TB = await axios.get(baseUrl + `getBookTags?id=${props.bok?.id}`);
+      setTags(T.data.Tags);
+      setbookTags(TB.data.Tags);
     };
     m();
   }, [refreshTags]);
 
   let openBook = () => {
-    window.open("/read/" + props.bok.Name , "_blank", "top=200,left=200,width=1000,frame=false,nodeIntegration=no");
+    window.open(
+      "/read/" + props.bok.Name,
+      "_blank",
+      "top=200,left=200,width=1000,frame=false,nodeIntegration=no"
+    );
   };
 
   let DelBook = async () => {
@@ -48,7 +51,7 @@ export const Book = (props) => {
     let t = async () => {
       let d = await axios.post(
         baseUrl + "addBookTag",
-        { Name: props.bok["Name"], Tag: ta },
+        { id: props.bok["id"], Tag: ta },
         {
           headers: {
             "Content-Type": "application/json",
@@ -136,7 +139,7 @@ export const Book = (props) => {
                       <TagComp
                         key={tag}
                         fresh={setrefreshTag}
-                        Name={props.bok["Name"]}
+                        id={props.bok["id"]}
                         Tag={tag}
                       />
                     );
@@ -187,7 +190,7 @@ export const TagComp = (props) => {
     let t = async () => {
       let d = await axios.post(
         baseUrl + "delBookTag",
-        { Name: props.Name, Tag: props.Tag },
+        { id: props.id, Tag: props.Tag },
         {
           headers: {
             "Content-Type": "application/json",

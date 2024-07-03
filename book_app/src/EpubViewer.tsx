@@ -32,6 +32,38 @@ const EpubViewer = ({ url }) => {
   const { id } = useParams();
   console.log(id);
 
+  var darkThemeStyles = `
+
+  @font-face {
+        font-family: 'Roboto';
+        src: url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+      }
+body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Roboto', sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 10px;
+      }
+      p {
+        color: #e0e0e0;
+        font-size: 18px;
+      }
+      h1 {
+        color: #bb86fc;
+      }
+      a {
+        color: #bb86fc;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+
+`;
+
   useEffect(() => {
     const initializeBook = async () => {
       const book = ePub(url);
@@ -43,8 +75,12 @@ const EpubViewer = ({ url }) => {
       });
       renditionRef.current = rendition;
 
+      // Register the dark theme
+      renditionRef.current.themes.registerCss("dark", darkThemeStyles);
+
       renditionRef.current.on("rendered", () => {
         setLoading(false);
+        renditionRef.current.themes.select("dark");
       });
 
       book.loaded.metadata.then((metadata) => {
@@ -107,9 +143,9 @@ const EpubViewer = ({ url }) => {
   console.log(bookmarks);
   const updatePageNumber = (location) => {
     if (true) {
-      const currentPage = book.locations.locationFromCfi(location.start.cfi);
+      var currentPage = location.start.displayed.page;
       console.log(currentPage);
-      setPageNumber(currentPage + 1);
+      setPageNumber(currentPage);
     }
   };
 
@@ -128,9 +164,19 @@ const EpubViewer = ({ url }) => {
   const goToLocation = (location) => {
     if (renditionRef.current) {
       let base = renditionRef.current.location.start.href.split("/");
-      base.pop();
-      base = base.join("/");
-      renditionRef.current.display(base + "/" + location);
+      console.log(base);
+
+      let o;
+      // if (base.length > 1) {
+      //   base.pop();
+      //   base = base.join("/");
+      //   o = base + "/" + location;
+      //   console.log(base, o);
+      // } else {
+      //   o = location;
+      // }
+      o = location;
+      renditionRef.current.display(o);
     }
   };
 
