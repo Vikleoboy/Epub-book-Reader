@@ -139,7 +139,7 @@ export const Book = (props) => {
                       <TagComp
                         key={tag}
                         fresh={setrefreshTag}
-                        Name={props.bok["Name"]}
+                        id={props.bok["id"]}
                         Tag={tag}
                       />
                     );
@@ -190,7 +190,7 @@ export const TagComp = (props) => {
     let t = async () => {
       let d = await axios.post(
         baseUrl + "delBookTag",
-        { Name: props.Name, Tag: props.Tag },
+        { id: props.id, Tag: props.Tag },
         {
           headers: {
             "Content-Type": "application/json",
