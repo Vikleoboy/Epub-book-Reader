@@ -30,6 +30,75 @@ def safe_path(directory, filename):
 # Main Routes
 
 
+@app.route("/delBookTag", methods=["POST"])
+def add_book_tag():
+    req_data = request.get_json()
+    id = req_data.get("id")
+    Tag = req_data.get("Tag")
+
+    # Read and parse the JSON files
+    bk = ReadData("b")
+    data_sub = bk["Sub"]
+    data = bk["Main"]
+
+    for index, book in enumerate(data_sub["Books"]):
+        if book.get("id") == id:
+            if Tag and Tag not in book["Tags"]:
+                book["Tags"].append(Tag)
+                data["Books"][index]["Tags"].append(Tag)
+                # Update the main and sub data files
+
+    try:
+        writeData(data_sub, "Database/Sub.json")
+        writeData(data, "Database/Main.json")
+        return jsonify({"res": "Tag added successfully"}), 200
+    except Exception:
+        return jsonify({"res": "NotFound"}), 404
+
+
+@app.route("/delTag", methods=["GET"])
+def del_tag():
+    tagName = request.args.get("tagName")
+
+    bk = ReadData("b")
+    data_sub = bk["Sub"]
+    data_main = bk["Main"]
+
+    # Add the tag if it doesn't already exist
+    print(data_sub)
+    if tagName in data_sub["Tags"]:
+        data_main["Tags"].remove(tagName)
+        data_sub["Tags"].remove(tagName)
+
+        # Save the updated JSON data back to the files
+        writeData(data_sub, "Database/Sub.json")
+        writeData(data_main, "Database/Main.json")
+        return jsonify({"res": "Done"}), 200
+    else:
+        return jsonify({"res": "NVP"}), 200
+
+
+@app.route("/addTag", methods=["GET"])
+def add_tag():
+    tagName = request.args.get("tagName")
+
+    bk = ReadData("b")
+    data_sub = bk["Sub"]
+    data_main = bk["Main"]
+
+    # Add the tag if it doesn't already exist
+    if tagName and tagName not in data_sub["Tags"]:
+        data_main["Tags"].append(tagName)
+        data_sub["Tags"].append(tagName)
+
+        # Save the updated JSON data back to the files
+        writeData(data_sub, "Database/Sub.json")
+        writeData(data_main, "Database/Main.json")
+        return jsonify({"res": "Done"}), 200
+    else:
+        return jsonify({"res": "NVP"}), 200
+
+
 @app.route("/addBookTag", methods=["POST"])
 def add_book_tag():
     req_data = request.get_json()

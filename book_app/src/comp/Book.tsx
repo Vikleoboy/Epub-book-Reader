@@ -51,7 +51,7 @@ export const Book = (props) => {
     let t = async () => {
       let d = await axios.post(
         baseUrl + "addBookTag",
-        { Name: props.bok["Name"], Tag: ta },
+        { id: props.bok["id"], Tag: ta },
         {
           headers: {
             "Content-Type": "application/json",
