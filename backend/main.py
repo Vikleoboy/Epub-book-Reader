@@ -34,6 +34,28 @@ def safe_path(directory, filename):
     return safe_path
 
 
+@app.get("/delBook")
+async def del_book(id: str):
+
+    # Read and parse the JSON files
+    bk = ReadData("b")
+    data_sub = bk["Sub"]
+    data = bk["Main"]
+
+    for index, book in enumerate(data_sub["Books"]):
+        if book.get("id") == id:
+            del data_sub["Books"][index]
+            del data["Books"][index]
+
+    try:
+        # Update the main and sub data files
+        writeData(data_sub, "Database/Sub.json")
+        writeData(data, "Database/Main.json")
+        return {"res": "Book deleted successfully"}
+    except Exception:
+        raise HTTPException(status_code=404, detail="Tag not found")
+
+
 @app.post("/delBookTag")
 async def del_book_tag(req_data: dict):
     id = req_data.get("id")
