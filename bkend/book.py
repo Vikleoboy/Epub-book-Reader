@@ -1,7 +1,7 @@
 import os
 import shutil
 import zipfile
-import re
+
 from bs4 import BeautifulSoup
 
 
@@ -100,7 +100,7 @@ class Book:
                             else:
                                 self.Cover = "NotFound"
             else:
-                print("DAM")
+                pass
 
         if opf_present and len(opf_present) > 0:
             book_files = os.listdir(os.path.join(self.des, k[0]))
@@ -238,15 +238,15 @@ class Book:
 
 
 # Example usage:
-bk = Book(
-    "E:\\books\\e.epub",
-    "C:\\Users\\vikle\\Documents\\GitHubProjects\\Epub-book-Reader\\backend\\books",
-)
-# await bk.init()
-p = bk.get_cover("m")
-k = bk.book_data("m")
-print(k)
-print(p)
+# bk = Book(
+#     "E:\\books\\e.epub",
+#     "C:\\Users\\vikle\\Documents\\GitHubProjects\\Epub-book-Reader\\bkend\\books",
+# )
+# # await bk.init()
+# p = bk.get_cover("me")
+# k = bk.book_data("me")
+# print(k)
+# print(p)
 # bk.book_data()
 
 # Modify paths and call methods as needed

@@ -58,7 +58,7 @@ export const WorkArea = (props) => {
         {Books?.filter(searchBooks(keyWord)).map((i) => {
           return (
             <Book
-              key={i["Name"]}
+              key={i["id"]}
               bok={i}
               id={i["Name"]}
               fresh={setrefresh}

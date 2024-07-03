@@ -5,6 +5,9 @@ import shutil
 import secrets
 import string
 import json
+from book import Book
+from func import ReadData, bookTemp, writeData
+import pathlib
 
 
 def generate_unique_id(length=6):
@@ -17,27 +20,13 @@ def generate_unique_id(length=6):
     return unique_id
 
 
-def ReadData(mode="b"):
-    with open("Database/Sub.json", "r") as Sub:
-        SubData = json.load(Sub)
-        SubData = initData(SubData)
-    with open("Database/Main.json", "r") as Main:
-        MainData = json.load(Main)
-        MainData = initData(MainData)
-    print(SubData, "here")
-    if mode == "b":
-        return {"Sub": SubData, Main: MainData}
-    elif mode == "s":
-        return {"Sub": SubData}
-    elif mode == "m":
-        return {"Main": MainData}
-
-
 def AddFolder(pth, dest, epubDes):
 
     print("in the AddFolder")
     AllFile = os.listdir(pth)
-
+    rd = ReadData("b")
+    dum = rd["Sub"]["Books"]
+    dum2 = rd["Main"]["Books"]
     for fl in AllFile:
         id = generate_unique_id(8)
         try:
@@ -59,53 +48,46 @@ def AddFolder(pth, dest, epubDes):
                 except:
                     print("error")
 
-                # with open(fil, 'r') as src, open(k + ".zip", 'w') as dst:
-                #     shutil.copyfileobj(fil, k + ".zip")
-
                 with zipfile.ZipFile(destFolder + ".zip", "r") as zip_ref:
                     zip_ref.extractall(destFolder)
 
                 os.remove(destFolder + ".zip")
 
+                book = Book("", dest)
+                book.get_cover(id)
+                book.book_data(id)
+                # Logic to see if the book alredy exits in the Database
+                # can add logic with orgin folder which will be better but i am leaveing it for now
+                add = True
+                tempSub = bookTemp(id, book.Name, book.Cover, destFolder)
+
+                for i in dum:
+                    if tempSub["Name"] == i["Name"]:
+                        print("alredy in the database")
+                        add = False
+
+                if add:
+                    dum.append(tempSub)
+                    dum2.append(
+                        bookTemp(id, book.Name, book.Cover, destFolder, book.Chapters)
+                    )
+                else:
+                    shutil.rmtree(os.path.join(dest, id))
+                    pathlib.Path.unlink(os.path.join(epubDes) + ".epub")
+
         except:
             continue
             print("yo problem ")
+        rd["Sub"]["Books"] = dum
+        rd["Main"]["Books"] = dum2
+        writeData(rd["Sub"], "Database/Sub.json")
+        writeData(rd["Main"], "Database/Main.json")
 
 
-def initData(Data):
-    if not "Books" in Data:
-        Data["Books"] = []
-    if not "Tags" in Data:
-        Data["Tags"] = []
-    return Data
+# d = ReadData("s")["Sub"]
 
-
-def writeData(data, pth):
-    ex = os.path.exists(pth)
-    if ex:
-        with open(pth, "w") as json_file:
-            json.dump(data, json_file, indent=4)
-    return
-
-
-def bookTemp(id, name, cover, base, chapters=None):
-    if chapters == None:
-        return {"id": id, "Name": "name", "Cover": cover, "base": base, "Tags": []}
-    else:
-        return {
-            "id": id,
-            "Name": name,
-            "Cover": cover,
-            "base": base,
-            "Tags": [],
-            "Chapters": chapters,
-        }
-
-
-d = ReadData("s")["Sub"]
-
-books = d["Books"]
-books.append(bookTemp("sdf", "Vivek", "viverk", "/sdf"))
-d["Books"] = books
-writeData(d, "Database/Sub.json")
-print(ReadData("s"))
+# books = d["Books"]
+# books.append(bookTemp("sdf", "Vivek", "viverk", "/sdf"))
+# d["Books"] = books
+# writeData(d, "Database/Sub.json")
+# print(ReadData("s"))
