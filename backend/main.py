@@ -6,7 +6,7 @@ import json
 import base64
 from addFolder import AddFolder
 from addBook import AddBook, writeData
-from func import intalise, ReadData
+from func import intalise, ReadData, delBook
 
 app = FastAPI()
 
@@ -41,9 +41,11 @@ async def del_book(id: str):
     bk = ReadData("b")
     data_sub = bk["Sub"]
     data = bk["Main"]
+    
 
     for index, book in enumerate(data_sub["Books"]):
         if book.get("id") == id:
+            bookid = id 
             del data_sub["Books"][index]
             del data["Books"][index]
 
@@ -51,6 +53,7 @@ async def del_book(id: str):
         # Update the main and sub data files
         writeData(data_sub, "Database/Sub.json")
         writeData(data, "Database/Main.json")
+        delBook(bookid , mainDes , epubFolderDes )
         return {"res": "Book deleted successfully"}
     except Exception:
         raise HTTPException(status_code=404, detail="Tag not found")
@@ -165,10 +168,16 @@ async def get_cover(id: str):
     bk = ReadData("s")["Sub"]
 
     books = bk.get("Books", [])
+    
 
     for book in books:
+
+
         if id == book.get("id") and book is not None:
             cover_path = book.get("Cover")
+            if cover_path == 'NotFound' :  
+                return {"img": NotFound}
+
             if cover_path and os.path.exists(cover_path):
                 try:
                     with open(cover_path, "rb") as cover_file:
@@ -209,6 +218,7 @@ async def get_book_tags(id: str):
 @app.get("/home")
 async def home(tag: str = None):
     # Read and parse the JSON file
+    print(tag)
     bk = ReadData("s")["Sub"]
 
     books = bk.get("Books", [])

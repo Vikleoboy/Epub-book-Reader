@@ -1,6 +1,12 @@
 import os
 import json
+import shutil
 
+
+
+def delBook(id, dest,epubDes) :
+    os.remove(os.path.join(epubDes,id) + '.epub')
+    shutil.rmtree(os.path.join(dest, id ))
 
 def intalise():
     if not os.path.exists("books"):

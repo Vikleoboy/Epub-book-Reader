@@ -75,9 +75,9 @@ def AddFolder(pth, dest, epubDes):
                         bookTemp(id, book.Name, book.Cover, destFolder, book.Chapters)
                     )
                 else:
+                    os.remove(os.path.join(epubDes , id) + ".epub")
                     shutil.rmtree(os.path.join(dest, id))
-                    pathlib.Path.unlink(os.path.join(epubDes) + ".epub")
-
+                    
         except:
             print("yo problem ")
             continue

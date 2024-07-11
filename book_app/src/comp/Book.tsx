@@ -42,7 +42,7 @@ export const Book = (props) => {
   };
 
   let DelBook = async () => {
-    await axios.get(baseUrl + `delBook?id=${props.bok.Name}`);
+    await axios.get(baseUrl + `delBook?id=${props.bok.id}`);
     props.fresh((d) => !d);
   };
 
@@ -62,6 +62,8 @@ export const Book = (props) => {
 
     t();
     setrefreshTag((m) => !m);
+
+    console.log(cover)
   }
   return (
     <motion.div
@@ -160,7 +162,7 @@ export const Book = (props) => {
       >
         <img
           className=" z-0  shadow-xl rounded-lg shadow-gray-800  w-full object-contain "
-          src={cover === "error" ? logo : `data:image/jpeg;base64,${cover}`}
+          src={cover === "NotFound" ? logo : `data:image/jpeg;base64,${cover}`}
           alt=""
         />
       </motion.div>

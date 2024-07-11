@@ -214,6 +214,8 @@ body {
           <div>
             <p className="text-lg titlebar">{title}</p>
           </div>
+
+          {/* Nav Bar  */}
           <div className="absolute w-full justify-end flex items-center right-4 space-x-2">
             <div className="relative">
               <button
@@ -378,9 +380,9 @@ body {
           />
         )}
 
-        <div className=" absolute w-full p-3 bg-slate-400 z-40 top-[92%]">
+        {/* <div className=" absolute w-full p-3 bg-slate-400 z-40 top-[92%]">
           {pageNumber}
-        </div>
+        </div> */}
 
         <div className="flex w-full h-[100vh] flex-col items-center relative">
           <div ref={viewerRef} className="w-full h-[100vh] bg-gray-100"></div>

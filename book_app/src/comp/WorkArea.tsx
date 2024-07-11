@@ -16,7 +16,7 @@ export const WorkArea = (props) => {
     const func = async () => {
       if (props.TagString !== "") {
         console.log("comeing in here for no reason ");
-        var book = await axios.get(baseUrl + `home?Tag=${props.TagString}`);
+        var book = await axios.get(baseUrl + `home?tag=${props.TagString}`);
       } else {
         console.log("here");
         var book = await axios.get(baseUrl + "home");
