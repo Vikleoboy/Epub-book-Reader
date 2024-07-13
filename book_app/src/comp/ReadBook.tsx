@@ -11,7 +11,6 @@ import EpubViewer from "../EpubViewer.tsx";
 
 export const ReadBook = () => {
   const { id } = useParams();
-  const [index, setindex] = useState(7);
   const [url, seturl] = useState(null);
   useEffect(() => {
     let base = "http://localhost:3002/";
@@ -22,24 +21,13 @@ export const ReadBook = () => {
     };
 
     m();
-  }, [index]);
+  }, []);
 
  if(url !== null){
   return (
-    <EpubViewer  url={url} />
+    <EpubViewer bkid = {id} url={url} />
   );
  }
 };
 
-const HtmlViewer = ({ src, styles }) => {
-  return (
-    <>
-      <iframe
-        id="pain"
-        title="HTML Viewer"
-        srcDoc={src}
-        style={{ width: "100%", height: "100vh", border: "none" }}
-      ></iframe>
-    </>
-  );
-};
+

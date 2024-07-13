@@ -1,6 +1,18 @@
 import os
 import json
 import shutil
+import secrets
+import string
+
+
+def generate_unique_id(length=6):
+    # Define the alphabet: you can customize this
+    alphabet = string.ascii_letters + string.digits
+
+    # Generate a random string of the specified length
+    unique_id = "".join(secrets.choice(alphabet) for _ in range(length))
+
+    return unique_id
 
 
 
@@ -56,7 +68,7 @@ def writeData(data, pth):
 
 def bookTemp(id, name, cover, base, chapters=None):
     if chapters == None:
-        return {"id": id, "Name": name, "Cover": cover, "base": base, "Tags": []}
+        return {"id": id, "Name": name, "Cover": cover, "base": base, "Tags": [], "BookMarks" : [], "Highlights" : []}
     else:
         return {
             "id": id,
@@ -64,5 +76,7 @@ def bookTemp(id, name, cover, base, chapters=None):
             "Cover": cover,
             "base": base,
             "Tags": [],
+            "BookMarks" : [],
+            "Highlights" : [],
             "Chapters": chapters,
         }

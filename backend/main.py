@@ -6,7 +6,7 @@ import json
 import base64
 from addFolder import AddFolder
 from addBook import AddBook, writeData
-from func import intalise, ReadData, delBook
+from func import intalise, ReadData, delBook , generate_unique_id
 
 app = FastAPI()
 
@@ -57,6 +57,75 @@ async def del_book(id: str):
         return {"res": "Book deleted successfully"}
     except Exception:
         raise HTTPException(status_code=404, detail="Tag not found")
+
+@app.get("/getBookMarks")
+async def get_book_marks(id: str):
+    # Read and parse the JSON file
+    bk = ReadData("s")["Sub"]
+
+    books = bk.get("Books", [])
+
+    for book in books:
+        if book.get("id") == id:
+            print('in here ' , book.get('BookMarks'))
+            return  { 'BookMarks' : book.get("BookMarks")}
+
+    raise HTTPException(status_code=404, detail="Book not found")
+
+
+@app.post("/delBookMark")
+async def del_book_bookmark(req_data: dict):
+    id = req_data.get("id")
+    Tag = req_data.get("mark")
+    Name = req_data.get("mark")
+
+
+
+    # Read and parse the JSON files
+    bk = ReadData("b")
+    data_sub = bk["Sub"]
+    data = bk["Main"]
+
+    for index, book in enumerate(data_sub["Books"]):
+        if book.get("id") == id:
+            if Tag and Tag in book["Tags"]:
+                book["Tags"].remove(Tag)
+                data["Books"][index]["Tags"].remove(Tag)
+                # Update the main and sub data files
+
+    try:
+        writeData(data_sub, "Database/Sub.json")
+        writeData(data, "Database/Main.json")
+        return {"res": "Tag deleted successfully"}
+    except Exception:
+        raise HTTPException(status_code=404, detail="Tag not found")
+
+
+@app.post("/addBookMark")
+async def add_book_bookmark(req_data: dict):
+    id = req_data.get("id")
+    name = req_data.get('name')
+    cfiValue = req_data.get("cfiValue")
+
+    # Read and parse the JSON files
+    bk = ReadData("b")
+    data_sub = bk["Sub"]
+    data = bk["Main"]
+
+    for index, book in enumerate(data_sub["Books"]):
+        if book.get("id") == id:
+            bookid = generate_unique_id(8)
+            book["BookMarks"].append({ 'id' : bookid , 'name' : name , 'cfiValue' : cfiValue})
+            data["Books"][index]["BookMarks"].append({ 'id' : bookid , 'name' : name , 'cfiValue' : cfiValue})
+                # Update the main and sub data files
+
+    try:
+        writeData(data_sub, "Database/Sub.json")
+        writeData(data, "Database/Main.json")
+        return {"res": "Tag added successfully"}
+    except Exception:
+        raise HTTPException(status_code=404, detail="Tag not found")
+
 
 
 @app.post("/delBookTag")
@@ -154,10 +223,24 @@ async def read(id: str):
 
     if "Books" in data_sub and len(data_sub["Books"]) > 0:
         for book in data_sub.get("Books", []):
-            if book.get("Name") == id:
+            if book.get("id") == id:
                 book_id = book.get("id")
 
                 return {"url": f"http://localhost:3002/epubBooks/{book_id}.epub"}
+
+    raise HTTPException(status_code=404, detail="Book not found")
+
+
+@app.get("getBook")
+async def getbook(id : str) : 
+    # Read and parse the JSON file
+    bk = ReadData("s")["Sub"]
+
+    books = bk.get("Books", [])
+
+    for book in books:
+        if book.get('id') == id :
+            return book
 
     raise HTTPException(status_code=404, detail="Book not found")
 
@@ -267,4 +350,4 @@ async def serve_epub_books(filename: str):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="localhost", port=3002)
+    uvicorn.run("main:app", host="localhost", port=3002 , log_level = 'info' ,reload = True)

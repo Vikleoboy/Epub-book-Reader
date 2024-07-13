@@ -35,7 +35,7 @@ export const Book = (props) => {
 
   let openBook = () => {
     window.open(
-      "/read/" + props.bok.Name,
+      "/read/" + props.bok.id,
       "_blank",
       "top=200,left=200,width=1000,frame=false,nodeIntegration=no"
     );

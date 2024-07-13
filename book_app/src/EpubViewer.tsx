@@ -11,8 +11,9 @@ import { IoClose } from "react-icons/io5";
 import { IoMdAdd } from "react-icons/io";
 
 import { FaBookmark, FaRegFileAlt } from "react-icons/fa";
+import axios from "axios";
 
-const EpubViewer = ({ url }) => {
+const EpubViewer = ({ url, bkid }) => {
   const viewerRef = useRef(null);
   const renditionRef = useRef(null);
   const [book, setBook] = useState(null);
@@ -65,9 +66,13 @@ body {
 `;
 
   useEffect(() => {
+
+
     const initializeBook = async () => {
       const book = ePub(url);
       setBook(book);
+
+      
       const rendition = book.renderTo(viewerRef.current, {
         width: "100%",
         height: "100%",
@@ -112,6 +117,10 @@ body {
       } catch (error) {
         console.error("Error generating locations:", error);
       }
+
+      let baseUrl = "http://localhost:3002/";
+      let bkm = await axios.get(baseUrl + 'getBookMarks?id=' + bkid ) 
+      setBookmarks(bkm.data.BookMarks)
     };
 
     initializeBook();
@@ -343,6 +352,7 @@ body {
                         </div>
                       </div>
                     )}
+
                     {selectedTab === 1 && (
                       <div className="flex-1 mt-2 overflow-y-auto relative rounded-lg">
                         <div>
@@ -377,6 +387,7 @@ body {
             setBookmarks={setBookmarks}
             setbookMarkModal={setbookMarkModal}
             location={location}
+            id={bkid}
           />
         )}
 
@@ -412,22 +423,36 @@ export const AddBookMarkModal = ({
   setbookMarkModal,
   setBookmarks,
   location,
+  id,
 }) => {
   const [inputValue, setInputValue] = useState("");
-
+  let baseUrl: string = "http://localhost:3002/";
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
   };
 
-  const addBookmark = () => {
-    if (location) {
-      console.log(location.start.cfi);
-      setBookmarks((prev) => [
-        ...prev,
-        { name: inputValue, cfiValue: location.start.cfi },
-      ]);
-      setbookMarkModal(false);
-    }
+  const addBookmark = () =>  {
+    let adder = async () => {
+      let adbk = await axios.post(
+        baseUrl + `addBookMark`,
+        { id: id, name: inputValue, cfiValue: location.start.cfi },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      let bkm = await axios.get(baseUrl + `getBookMarks?id=${id}`);
+
+      if (location) {
+        console.log(location.start.cfi);
+        console.log(bkm.data.BookMarks);
+        setBookmarks( bkm.data["BookMarks"]);
+        setbookMarkModal(false);
+      }
+    };
+    adder();
   };
 
   return (

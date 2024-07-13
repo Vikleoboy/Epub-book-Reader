@@ -2,22 +2,12 @@ import sys
 import os
 import zipfile
 import shutil
-import secrets
-import string
+
 import json
 from book import Book
-from func import ReadData, bookTemp, writeData
+from func import ReadData, bookTemp, writeData,generate_unique_id
 import pathlib
 
-
-def generate_unique_id(length=6):
-    # Define the alphabet: you can customize this
-    alphabet = string.ascii_letters + string.digits
-
-    # Generate a random string of the specified length
-    unique_id = "".join(secrets.choice(alphabet) for _ in range(length))
-
-    return unique_id
 
 
 def AddFolder(pth, dest, epubDes):
