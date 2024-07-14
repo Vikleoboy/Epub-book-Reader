@@ -1,4 +1,4 @@
----
+
 
 # 📚 EPUB Book Reader App
 
@@ -104,6 +104,3 @@ Enjoy your reading! 📖✨
 
 _This project is open source and licensed under the MIT License._
 
----
-
-You can copy this text directly into your README file.
