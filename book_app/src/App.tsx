@@ -3,7 +3,7 @@ import { MainPage } from "./Main/MainPage.tsx";
 import "./theme/variables.css";
 import { Route, Routes } from "react-router-dom";
 import { ReadBook } from "./comp/ReadBook.tsx";
-import EpubReader from "./EpubViewer.tsx";
+import EpubReader from "./EpubViewertest.tsx";
 
 function App() {
   return (
