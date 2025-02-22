@@ -8,11 +8,11 @@ Welcome to the EPUB Book Reader App! This app is designed to enhance your readin
 
 ### Stage 1: Core Reading Features (In Progress)
 
-- **Read EPUB Files**: Open and read EPUB files with ease.
-- **Bookmarks**: Save your place in the book for quick access later.
-- **Highlights**: Highlight important passages or favorite quotes.
-- **Tags**: Organize your highlights and bookmarks with customizable tags.
-- **Folders**: Group your books into folders for better organization.
+- 📖**Read EPUB Files**: Open and read EPUB files with ease.
+- 🔖**Bookmarks**: Save your place in the book for quick access later.
+- ✨**Highlights**: Highlight important passages or favorite quotes.
+- 🏷️**Tags**: Organize your highlights and bookmarks with customizable tags.
+- 📂**Folders**: Group your books into folders for better organization.
 
 ### Stage 2: Social Media Integration (Coming Soon)
 
