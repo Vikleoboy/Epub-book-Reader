@@ -32,9 +32,10 @@ Welcome to the EPUB Book Reader App! This app is designed to enhance your readin
 
 
 #### Requirement
-1 . Python 3 
+1 . Python 3 <br>
 2 . Node Js
 
+## Setup Instructions
 To get started with the EPUB Book Reader App, follow these steps:
 
 1. Clone the repository:
@@ -76,11 +77,11 @@ To get started with the EPUB Book Reader App, follow these steps:
 
 ### Current Progress
 
-- **Stage 1**: Implementing basic reading features (Bookmarks, Highlights, Tags, Folders)
+- **Stage 1**: ✅ Implementing basic reading features (Bookmarks, Highlights, Tags, Folders)
 
 ### Upcoming Features
 
-- **Stage 2**: Social media features (Sharing, Rating, Searching)
+- **Stage 2**: 🚀 Social media features (Sharing, Rating, Searching)
 
 ## 🌟 Contributing
 
